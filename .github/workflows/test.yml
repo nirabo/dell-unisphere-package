@@ -64,18 +64,3 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
-
-      - name: Generate test report
-        run: |
-          # If using uv, activate the virtual environment first
-          if command -v uv &> /dev/null && [ -d ".venv" ]; then
-            source .venv/bin/activate
-          fi
-          mkdir -p tests/scripts/test_results
-          bash tests/scripts/test_api.sh
-
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report
-          path: tests/scripts/test_results/test_report.md
