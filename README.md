@@ -97,6 +97,7 @@ Comprehensive documentation is available in the `docs` directory:
 - [Dell Unisphere REST API Documentation](docs/DellUnisphereRestAPI.md) - Detailed specification of the Dell Unisphere REST API endpoints, request/response formats, and authentication mechanisms.
 
 ### Project Documentation
+- [Architecture](docs/Architecture.md) - Detailed software architecture including component design, data flow, and deployment considerations.
 - [Requirements Documentation](docs/Requirements.md) - Functional and non-functional requirements for the Dell Unisphere Mock API.
 - [Test Strategy](docs/TestStrategy.md) - Comprehensive testing approach including unit, integration, and e2e tests organized according to the test pyramid approach.
 - [Use Cases](docs/UseCases.md) - Common use case scenarios and workflows for interacting with the Dell Unisphere API.
