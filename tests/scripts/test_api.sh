@@ -194,22 +194,28 @@ main() {
     # Test 4: Get user info
     test_endpoint "GET" "/api/types/user/instances" "true" "Getting User Info"
 
-    # Test 5: Get candidate software versions
+    # Test 5: Get installed software versions
+    test_endpoint "GET" "/api/types/installedSoftwareVersion/instances" "true" "Getting Installed Software Versions"
+
+    # Test 6: Get specific installed software version
+    test_endpoint "GET" "/api/instances/installedSoftwareVersion/0" "true" "Getting Specific Installed Software Version"
+
+    # Test 7: Get candidate software versions
     test_endpoint "GET" "/api/types/candidateSoftwareVersion/instances" "true" "Getting Candidate Software Versions"
 
-    # Test 6: Get upgrade sessions
+    # Test 8: Get upgrade sessions
     test_endpoint "GET" "/api/types/upgradeSession/instances" "true" "Getting Upgrade Sessions"
 
-    # Test 7: Get upgrade sessions with fields
+    # Test 9: Get upgrade sessions with fields
     test_endpoint "GET" "/api/types/upgradeSession/instances?fields=status,caption,percentComplete,tasks" "true" "Getting Upgrade Sessions with Fields"
 
-    # Test 8: Verify upgrade eligibility
+    # Test 10: Verify upgrade eligibility
     test_endpoint "POST" "/api/types/upgradeSession/action/verifyUpgradeEligibility" "true" "Verifying Upgrade Eligibility" "$CSRF_HEADER"
 
     # Create dummy upgrade file
     create_dummy_upgrade_file
 
-# Test 9: Upload software package (if endpoint is implemented)
+# Test 11: Upload software package (if endpoint is implemented)
 print_header "Uploading Software Package"
 if [ -n "$CSRF_TOKEN" ]; then
     cmd="curl -s -k -L -X POST \"$HOST/upload/files/types/candidateSoftwareVersion\" -u \"$USERNAME:$PASSWORD\" -b $COOKIE_JAR -H \"X-EMC-REST-CLIENT: true\" -H \"EMC-CSRF-TOKEN: $CSRF_TOKEN\" -F \"file=@$UPGRADE_FILE\""
@@ -254,16 +260,16 @@ else
     echo "Skipped - CSRF token not available" >> $REPORT_FILE
 fi
 
-    # Test 10: Prepare software (if endpoint is implemented)
+    # Test 12: Prepare software (if endpoint is implemented)
     test_endpoint "POST" "/api/types/candidateSoftwareVersion/action/prepare" "true" "prepare_software.json" "Preparing Software" "$CSRF_HEADER" "{\"filename\":\"$UPGRADE_FILE\"}"
 
-    # Test 11: Create upgrade session (if endpoint is implemented)
+    # Test 13: Create upgrade session (if endpoint is implemented)
     test_endpoint "POST" "/api/types/upgradeSession/instances" "true" "create_upgrade_session.json" "Creating Upgrade Session" "$CSRF_HEADER" "{\"candidate\":\"candidate_1\",\"pauseBeforeReboot\":true}"
 
-    # Test 12: Resume upgrade session (if endpoint is implemented)
+    # Test 14: Resume upgrade session (if endpoint is implemented)
     test_endpoint "POST" "/api/instances/upgradeSession/Upgrade_5.3.0.120/action/resume" "true" "resume_upgrade_session.json" "Resuming Upgrade Session" "$CSRF_HEADER"
 
-    # Test 13: Logout
+    # Test 15: Logout
     test_endpoint "POST" "/api/types/loginSessionInfo/action/logout" "true" "logout_response.json" "Logging Out" "$CSRF_HEADER" "{\"localCleanupOnly\":true}"
 
     print_header "Test Summary"

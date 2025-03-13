@@ -5,7 +5,8 @@ This module defines the Pydantic models used for data validation and serializati
 
 from typing import List
 from enum import Enum
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, Field
 
 
 class BasicSystemInfo(BaseModel):
@@ -68,3 +69,58 @@ class TaskTypeEnum(int, Enum):
     UPLOAD = 1
     INSTALL = 2
     REBOOT = 3
+
+
+class FirmwarePackage(BaseModel):
+    name: str
+    version: str
+    releaseDate: datetime
+    upgradedeDriveCount: int = Field(
+        0, description="The number of upgraded drives in the array"
+    )
+    estimatedTime: int = Field(
+        0, description="Time estimation to upgrade drive firmware in minutes"
+    )
+    isNewVersion: bool = Field(
+        False,
+        description="Indicates whether the drive firmware package is newer than the installed one",
+    )
+
+
+class InstalledSoftwareVersionLanguage(BaseModel):
+    name: str
+    version: str
+
+
+class InstalledSoftwareVersionPackage(BaseModel):
+    name: str
+    version: str
+
+
+class InstalledSoftwareVersion(BaseModel):
+    id: str = "0"
+    version: str = "5.3.0"
+    revision: int = 120
+    releaseDate: datetime = datetime.now()
+    fullVersion: str = (
+        "Unity 5.3.0.0 (Release, Build 120, 2023-03-18 19:02:01, 5.3.0.0.5.120)"
+    )
+    languages: List[InstalledSoftwareVersionLanguage] = [
+        InstalledSoftwareVersionLanguage(name="English", version="5.3.0"),
+        InstalledSoftwareVersionLanguage(name="Chinese", version="5.3.0"),
+    ]
+    hotFixes: List[str] = ["HF1", "HF2"]
+    packageVersions: List[InstalledSoftwareVersionPackage] = [
+        InstalledSoftwareVersionPackage(name="Base", version="5.3.0"),
+        InstalledSoftwareVersionPackage(name="Management", version="5.3.0"),
+    ]
+    driveFirmware: List[FirmwarePackage] = [
+        FirmwarePackage(
+            name="Drive Firmware Package 1",
+            version="1.2.3",
+            releaseDate=datetime.now(),
+            upgradedeDriveCount=24,
+            estimatedTime=30,
+            isNewVersion=False,
+        )
+    ]
