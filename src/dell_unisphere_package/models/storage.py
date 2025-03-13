@@ -28,6 +28,7 @@ users = {
         "domain": "local",
     },
 }
+# Initially empty, will be populated when software is uploaded and prepared
 candidate_software_versions: Dict[str, Any] = {}
 upgrade_sessions = {
     "Upgrade_4.3.0.1499782821": {
