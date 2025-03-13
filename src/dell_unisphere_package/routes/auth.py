@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, Response, Depends, HTTPException
 
 from ..controllers.auth import get_current_user, format_response
 from ..models.storage import sessions, users
-from ..schemas.base import LoginSessionInfo
+from ..schemas.base import LoginSessionInfo, User
 
 router = APIRouter(prefix="/api")
 
@@ -43,11 +43,20 @@ def get_login_session_info(
     )
     response.headers["EMC-CSRF-TOKEN"] = session_id
 
-    # Return session info
-    return LoginSessionInfo(
-        username=current_user["username"],
-        domain=current_user["domain"],
+    # Create login session info
+    login_session_info = LoginSessionInfo(
+        domain=current_user["domain"].lower(),
+        roles=current_user["roles"],
+        user=User(id=f"user_{current_user['username']}"),
         id=session_id,
+    )
+
+    # Return formatted response
+    return format_response(
+        login_session_info,
+        request,
+        instance_type="loginSessionInfo",
+        instance_id=session_id,
     )
 
 
@@ -79,7 +88,11 @@ def logout_delete(
     # Clear cookie
     response.delete_cookie(key="EMC-CSRF-TOKEN")
 
-    return {"message": "Logged out successfully"}
+    # Create response message
+    logout_message = {"message": "Logged out successfully"}
+
+    # Return formatted response
+    return format_response(logout_message, request, instance_type="logoutInfo")
 
 
 @router.post("/types/loginSessionInfo/action/logout")
@@ -96,4 +109,8 @@ def logout_post(
     # Clear cookie
     response.delete_cookie(key="EMC-CSRF-TOKEN")
 
-    return {"message": "Logged out successfully"}
+    # Create response message
+    logout_message = {"message": "Logged out successfully"}
+
+    # Return formatted response
+    return format_response(logout_message, request, instance_type="logoutInfo")

@@ -1377,4 +1377,79 @@ The Dell EMC Unity API uses cookie-based authentication, meaning that cookies ar
 
       26  (2025-02-28 10:02:42 CET) time curl -s -k -L -X POST ${HOST}/upload/files/types/candidateSoftwareVersion -b cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: d2nFivGgU8EiztUJ6IlsFwStrS+s59RxdKTX1mqvuFnOUz2fiwy1slHlItOu9ET003xOjsJFX+E9UE6jFxck4Ffo/Km9AJj13dsyt/7PkZQ=" -H "multipart/form-data" -F filename=@/sdev_shared/swint/WLT_SWINT/EXE5000/SICSv3/NAS/Unity-5.3.0.0.5.120.tgz.bin.gpg
 
+curl -s -k -L -X 'GET' '${HOST}/api/types/installedSoftwareVersion/instances?fields=driveFirmware' -u "admin:Password123!@" -c cookie.jar -H 'X-EMC-REST-CLIENT: true' -H "Accept: application/json" -H "Content-Type: application/json"   | python3 -m json.tool
+{
+    "@base": "${HOST}/api/types/installedSoftwareVersion/instances?fields=driveFirmware&per_page=2000",
+    "updated": "2025-03-13T09:49:22.072Z",
+    "links": [
+        {
+            "rel": "self",
+            "href": "&page=1"
+        }
+    ],
+    "entries": [
+        {
+            "@base": "${HOST}/api/instances/installedSoftwareVersion",
+            "updated": "2025-03-13T09:49:22.072Z",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "/5.3.0.0.5.120"
+                }
+            ],
+            "content": {
+                "id": "5.3.0.0.5.120",
+                "driveFirmware": [
+                    {
+                        "name": "Unity-Drive-Firmware-V20-2022-06-13.tgz.bin.gpg",
+                        "version": "4.3.0.1499782821",
+                        "releaseDate": "2022-06-13T23:24:01.000Z",
+                        "upgradableDriveCount": 0,
+                        "estimatedTime": 0,
+                        "isNewerVersion": false
+                    }
+                ]
+            }
+        }
+    ]
+}
+
+curl -s -k -L -X 'GET' 'https://146.106.142.250/api/types/loginSessionInfo/instances' -u "admin:Password123!" -c cookie.jar -H 'X-EMC-REST-CLIENT: true' -H "Accept: application/json" -H "Content-Type: application/json"   | python3 -m json.tool
+{
+    "@base": "$HOST/api/types/loginSessionInfo/instances?per_page=2000",
+    "updated": "2025-03-13T10:15:38.600Z",
+    "links": [
+        {
+            "rel": "self",
+            "href": "&page=1"
+        }
+    ],
+    "entries": [
+        {
+            "@base": "$HOST/api/instances/loginSessionInfo",
+            "updated": "2025-03-13T10:15:38.600Z",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "/admin"
+                }
+            ],
+            "content": {
+                "domain": "local",
+                "idleTimeout": 3600,
+                "roles": [
+                    {
+                        "id": "administrator"
+                    }
+                ],
+                "user": {
+                    "id": "user_admin"
+                },
+                "id": "admin",
+                "isPasswordChangeRequired": false
+            }
+        }
+    ]
+}
+
 ```

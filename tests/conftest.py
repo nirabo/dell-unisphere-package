@@ -45,14 +45,14 @@ def reset_storage():
         "id": "user_1",
         "username": "admin",
         "password": "Password123!",
-        "roles": ["administrator"],
+        "roles": [{"id": "administrator"}],
         "domain": "Local",
     }
     users["user"] = {
         "id": "user_2",
         "username": "user",
         "password": "Password123!",
-        "roles": ["operator"],
+        "roles": [{"id": "operator"}],
         "domain": "Local",
     }
 

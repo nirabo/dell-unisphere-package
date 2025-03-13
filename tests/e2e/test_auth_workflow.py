@@ -24,7 +24,14 @@ class TestAuthWorkflow:
         # Verify successful login
         assert login_response.status_code == 200
         login_data = login_response.json()
-        assert login_data["username"] == "admin"
+        assert "content" in login_data
+
+        # Verify content values
+        content = login_data["content"]
+        assert content["domain"] == "local"
+        assert content["user"]["id"] == "user_admin"
+        assert len(content["roles"]) > 0
+        assert content["roles"][0]["id"] == "administrator"
 
         # Get CSRF token from cookies
         assert "EMC-CSRF-TOKEN" in login_response.cookies

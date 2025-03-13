@@ -26,14 +26,24 @@ class TestAuthRoutes:
 
         # Verify response structure
         data = response.json()
-        assert "username" in data
-        assert "domain" in data
-        assert "id" in data
+        assert "@base" in data
+        assert "content" in data
+        assert "links" in data
+        assert "updated" in data
 
-        # Verify content
-        assert data["username"] == "admin"
-        assert data["domain"] == "Local"
-        assert data["id"] is not None
+        # Verify content structure
+        content = data["content"]
+        assert "domain" in content
+        assert "id" in content
+        assert "roles" in content
+        assert "user" in content
+
+        # Verify content values
+        assert content["domain"] == "local"
+        assert content["id"] is not None
+        assert len(content["roles"]) > 0
+        assert content["roles"][0]["id"] == "administrator"
+        assert content["user"]["id"] == "user_admin"
 
         # Verify cookies
         assert "EMC-CSRF-TOKEN" in response.cookies
