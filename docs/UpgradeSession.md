@@ -25,7 +25,7 @@ Current status of the associated upgrade session.
 | 8 | Upgrade_Waiting_For_User | Upgrade session is waiting for user action to continue the <br> upgrade |
 | 9 | Upgrade_Paused_Lock | Upgrade session is paused past the point of cancellation. |
 
-## UpgradeTypeEnum 
+## UpgradeTypeEnum
 
 | Value | Enumeration |
 | :-- | :-- |

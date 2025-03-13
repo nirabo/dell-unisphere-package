@@ -1,5 +1,5 @@
  ```
- 
+
  [root@mDA11 ~]# curl -s -k -L -X GET ${HOST}/api/types/basicSystemInfo/instances | python3 -m json.tool
 {
     "@base": "${HOST}api/types/basicSystemInfo/instances?per_page=2000",
@@ -286,7 +286,7 @@
    31  (2025-02-28 10:22:04 CET) time curl -s -k -L -X POST ${HOST}/api/types/upgradeSession/action/verifyUpgradeEligibility -b cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: d2nFivGgU8EiztUJ6IlsFwStrS+s59RxdKTX1mqvuFnOUz2fiwy1slHlItOu9ET003xOjsJFX+E9UE6jFxck4Ffo/Km9AJj13dsyt/7PkZQ=" -v
 
    59  (2025-02-28 11:16:45 CET) time uemcli -d 146.106.142.250 -u user -p Password123! -upload -f /sdev_shared/swint/WLT_SWINT/EXE5000/SICSv3/NAS/Unity-5.3.0.0.5.120.tgz.bin.gpg upgrade -sslPolicy accept
-   
+
       26  (2025-02-28 10:02:42 CET) time curl -s -k -L -X POST ${HOST}/upload/files/types/candidateSoftwareVersion -b cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: d2nFivGgU8EiztUJ6IlsFwStrS+s59RxdKTX1mqvuFnOUz2fiwy1slHlItOu9ET003xOjsJFX+E9UE6jFxck4Ffo/Km9AJj13dsyt/7PkZQ=" -H "multipart/form-data" -F filename=@/sdev_shared/swint/WLT_SWINT/EXE5000/SICSv3/NAS/Unity-5.3.0.0.5.120.tgz.bin.gpg
 
 ```

@@ -18,7 +18,7 @@ Attributes
 
 ![img-7.jpeg](img-7.jpeg)
 
-# Query all members of the loginSessionInfo collection 
+# Query all members of the loginSessionInfo collection
 
 | Header | Accept: application/json <br> Content-Type: application/json |
 | :-- | :-- |

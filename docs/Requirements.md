@@ -51,4 +51,3 @@ where `<token>` is a valid authentication token - base64 encoded `user:pass` pai
 8. Every POST, PUT, and DELETE endpoint require a valid session cookie
 
 9. Once a valid session cookie and CSRF token are received, they shall be used for all subsequent requests
-
