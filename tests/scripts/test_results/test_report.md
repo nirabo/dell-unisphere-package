@@ -1,5 +1,5 @@
 # API Test Report
-Generated: Thu Mar 13 08:35:15 AM EET 2025
+Generated: Thu Mar 13 09:39:00 AM EET 2025
 
 ---
 
@@ -17,29 +17,21 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/basicSystemInfo/instances"
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/basicSystemInfo/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.183312Z",
-    "links": [
-        {
-            "rel": "self",
-            "href": "&page=1"
-        }
-    ],
     "entries": [
         {
-            "@base": "http://localhost:8000/api/instances/basicSystemInfo",
-            "updated": "2025-03-13T08:35:15.183312Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/0"
-                }
-            ],
             "content": {
-                "id": "0"
-            }
+                "id": "0",
+                "model": "Unity 380F",
+                "name": "CKM01204905476",
+                "softwareVersion": "5.3.0",
+                "softwareFullVersion": "Unity 5.3.0.0 (Release, Build 120, 2023-03-18 19:02:01, 5.3.0.0.5.120)",
+                "apiVersion": "13.0",
+                "earliestApiVersion": "4.0"
+            },
+            "id": "basicSystemInfo_0"
         }
-    ]
+    ],
+    "base": "http://localhost:8000/api"
 }
 ```
 
@@ -49,33 +41,22 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/basicSystemInfo/instances"
 ```bash
 curl -s -k -L -X GET "http://localhost:8000/api/types/loginSessionInfo/instances" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true"
 ```
-Got CSRF token: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU
+Got CSRF token: dd2acd94-b726-4a8f-8557-ffcc4be39904
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/loginSessionInfo/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.252761Z",
-    "links": [
+    "roles": [
         {
-            "rel": "self",
-            "href": "&page=1"
+            "id": "administrator"
         }
     ],
-    "entries": [
-        {
-            "@base": "http://localhost:8000/api/instances/loginSessionInfo",
-            "updated": "2025-03-13T08:35:15.252761Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/user"
-                }
-            ],
-            "content": {
-                "id": "user"
-            }
-        }
-    ]
+    "domain": "local",
+    "user": {
+        "id": "user_admin"
+    },
+    "id": "dd2acd94-b726-4a8f-8557-ffcc4be39904",
+    "idleTimeout": 3600,
+    "isPasswordChangeRequired": false
 }
 ```
 
@@ -101,55 +82,27 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/user/instances" -u "admin:
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/user/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.396332Z",
-    "links": [
-        {
-            "rel": "self",
-            "href": "&page=1"
-        }
-    ],
     "entries": [
         {
-            "@base": "http://localhost:8000/api/instances/user",
-            "updated": "2025-03-13T08:35:15.396332Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/user_admin"
-                }
-            ],
             "content": {
                 "id": "user_admin"
-            }
+            },
+            "id": "user_0"
         },
         {
-            "@base": "http://localhost:8000/api/instances/user",
-            "updated": "2025-03-13T08:35:15.396332Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/user_user"
-                }
-            ],
             "content": {
                 "id": "user_user"
-            }
+            },
+            "id": "user_1"
         },
         {
-            "@base": "http://localhost:8000/api/instances/user",
-            "updated": "2025-03-13T08:35:15.396332Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/user_diagnose"
-                }
-            ],
             "content": {
                 "id": "user_diagnose"
-            }
+            },
+            "id": "user_2"
         }
-    ]
+    ],
+    "base": "http://localhost:8000/api"
 }
 ```
 
@@ -162,15 +115,22 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/candidateSoftwareVersion/i
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/candidateSoftwareVersion/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.457393Z",
-    "links": [
+    "entries": [
         {
-            "rel": "self",
-            "href": "&page=1"
+            "content": {
+                "id": "candidate_default",
+                "version": "5.4.0",
+                "fullVersion": "Unity 5.4.0.0 (Release, Build 150, 2023-06-18 19:02:01, 5.4.0.0.5.150)",
+                "revision": 150,
+                "releaseDate": "2025-03-13T09:39:00.383081",
+                "type": "SOFTWARE",
+                "rebootRequired": true,
+                "canPauseBeforeReboot": true
+            },
+            "id": "candidateSoftwareVersion_0"
         }
     ],
-    "entries": []
+    "base": "http://localhost:8000/api"
 }
 ```
 
@@ -183,29 +143,24 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances" 
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/upgradeSession/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.517849Z",
-    "links": [
-        {
-            "rel": "self",
-            "href": "&page=1"
-        }
-    ],
     "entries": [
         {
-            "@base": "http://localhost:8000/api/instances/upgradeSession",
-            "updated": "2025-03-13T08:35:15.517849Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/Upgrade_4.3.0.1499782821"
-                }
-            ],
             "content": {
-                "id": "Upgrade_4.3.0.1499782821"
-            }
+                "id": "Upgrade_4.3.0.1499782821",
+                "type": 0,
+                "candidate": "candidate_default",
+                "caption": "Upgrade_4.3.0.1499782821",
+                "status": 2,
+                "messages": [],
+                "creationTime": "2025-02-11T09:38:55.933291",
+                "elapsedTime": "PT2H30M",
+                "percentComplete": 100,
+                "tasks": []
+            },
+            "id": "upgradeSession_0"
         }
-    ]
+    ],
+    "base": "http://localhost:8000/api"
 }
 ```
 
@@ -218,29 +173,18 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances?f
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/types/upgradeSession/instances?per_page=2000",
-    "updated": "2025-03-13T08:35:15.581382Z",
-    "links": [
-        {
-            "rel": "self",
-            "href": "&page=1"
-        }
-    ],
     "entries": [
         {
-            "@base": "http://localhost:8000/api/instances/upgradeSession",
-            "updated": "2025-03-13T08:35:15.581382Z",
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/Upgrade_4.3.0.1499782821"
-                }
-            ],
             "content": {
-                "id": "Upgrade_4.3.0.1499782821"
-            }
+                "status": 2,
+                "caption": "Upgrade_4.3.0.1499782821",
+                "percentComplete": 100,
+                "tasks": []
+            },
+            "id": "upgradeSession_0"
         }
-    ]
+    ],
+    "base": "http://localhost:8000/api"
 }
 ```
 
@@ -248,13 +192,12 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances?f
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/action/verifyUpgradeEligibility" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU"
+curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/action/verifyUpgradeEligibility" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904"
 ```
 ### Response
 ```json
 {
-    "isEligible": true,
-    "messages": []
+    "detail": "Not Found"
 }
 ```
 
@@ -265,7 +208,7 @@ Creating a 10MB dummy file for testing software upload
 ```
 10+0 records in
 10+0 records out
-10485760 bytes (10 MB, 10 MiB) copied, 0.0473281 s, 222 MB/s
+10485760 bytes (10 MB, 10 MiB) copied, 0.0430455 s, 244 MB/s
 File created: /home/lpetrov/projects/sandbox/work/dell-unisphere-package/tests/scripts/test_results/test_upgrade.bin (10MB)
 ```
 
@@ -273,14 +216,14 @@ File created: /home/lpetrov/projects/sandbox/work/dell-unisphere-package/tests/s
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/upload/files/types/candidateSoftwareVersion" -u "admin:Password123!" -b cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU" -F "file=@/home/lpetrov/projects/sandbox/work/dell-unisphere-package/tests/scripts/test_results/test_upgrade.bin"
+curl -s -k -L -X POST "http://localhost:8000/upload/files/types/candidateSoftwareVersion" -u "admin:Password123!" -b cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904" -F "file=@/home/lpetrov/projects/sandbox/work/dell-unisphere-package/tests/scripts/test_results/test_upgrade.bin"
 ```
 ### Response
 ```json
 {
-    "id": "file_e67b1949-d1d2-4c59-bfef-7a953e9e4ee8",
+    "id": "file_8d0348fe-5666-4807-b9ad-53b02093cb35",
     "filename": "test_upgrade.bin",
-    "status": "UPLOADED"
+    "size": 10485760
 }
 ```
 
@@ -288,21 +231,13 @@ curl -s -k -L -X POST "http://localhost:8000/upload/files/types/candidateSoftwar
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/types/candidateSoftwareVersion/action/prepare" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Preparing Software -d '-H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU"'
+curl -s -k -L -X POST "http://localhost:8000/api/types/candidateSoftwareVersion/action/prepare" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Preparing Software -d '-H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904"'
 ```
 ### Response
 ```json
 {
-    "error": {
-        "errorCode": 131149829,
-        "httpStatusCode": 403,
-        "messages": [
-            {
-                "en-US": "Invalid CSRF token"
-            }
-        ],
-        "created": "2025-03-13T08:35:15.957995Z"
-    }
+    "id": "candidate_fa027c85-6f8c-4987-89f7-66210a64b82d",
+    "status": "SUCCESS"
 }
 ```
 
@@ -310,21 +245,12 @@ curl -s -k -L -X POST "http://localhost:8000/api/types/candidateSoftwareVersion/
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/instances" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Creating Upgrade Session -d '-H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU"'
+curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/instances" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Creating Upgrade Session -d '-H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904"'
 ```
 ### Response
 ```json
 {
-    "error": {
-        "errorCode": 131149829,
-        "httpStatusCode": 403,
-        "messages": [
-            {
-                "en-US": "Invalid CSRF token"
-            }
-        ],
-        "created": "2025-03-13T08:35:16.032183Z"
-    }
+    "id": "Upgrade_c51055d0-c5c3-4b96-8587-ac5fe5e18a10"
 }
 ```
 
@@ -332,34 +258,23 @@ curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/instances"
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/instances/upgradeSession/Upgrade_5.3.0.120/action/resume" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Resuming Upgrade Session -d '-H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU"'
+curl -s -k -L -X POST "http://localhost:8000/api/instances/upgradeSession/Upgrade_5.3.0.120/action/resume" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Resuming Upgrade Session -d '-H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904"'
 ```
 ### Response
 ```json
-{
-    "error": {
-        "errorCode": 131149829,
-        "httpStatusCode": 403,
-        "messages": [
-            {
-                "en-US": "Invalid CSRF token"
-            }
-        ],
-        "created": "2025-03-13T08:35:16.096939Z"
-    }
-}
+
 ```
 
 ## logout_response.json
 
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/types/loginSessionInfo/action/logout" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Logging Out -d '-H "EMC-CSRF-TOKEN: 9jmP2-y9XDR-XEzGHT8KV_W7E5g0oz37h-dc06_E3dU"'
+curl -s -k -L -X POST "http://localhost:8000/api/types/loginSessionInfo/action/logout" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" Logging Out -d '-H "EMC-CSRF-TOKEN: dd2acd94-b726-4a8f-8557-ffcc4be39904"'
 ```
 ### Response
 ```json
 {
-    "status": "LOGGED_OUT"
+    "message": "Logged out successfully"
 }
 ```
 

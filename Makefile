@@ -26,8 +26,7 @@ run:
 
 # Lint and format code
 lint:
-	$(UV) run ruff check .
-	$(UV) run ruff format .
+	$(UV) run pre-commit run --all
 
 # Generate documentation
 docs:

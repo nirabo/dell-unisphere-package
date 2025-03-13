@@ -145,7 +145,7 @@ Validate that the system is in a healthy state. This is required for an upgrade 
 |  | Content - Type: application/json |
 | Method and URI | POST |
 |  | /api/types/softwareUpgradeSession/action/verifyUpgradeEligibility |
-| Request body arguments | See the arquments table below. |
+| Request body arguments | See the arguments table below. |
 | Successful return status | 200 OK, 202 Accepted (async response) |
 | Successful response body | JSON representation of the returned attributes. |
 
