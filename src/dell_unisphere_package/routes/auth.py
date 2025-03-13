@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, Response, Depends, HTTPException
 
 from ..controllers.auth import get_current_user, format_response
 from ..models.storage import sessions, users
-from ..schemas.base import LoginSessionInfo, User
+from ..schemas.base import LoginSessionInfo
 
 router = APIRouter(prefix="/api")
 
@@ -45,9 +45,8 @@ def get_login_session_info(
 
     # Return session info
     return LoginSessionInfo(
-        roles=current_user["roles"],
+        username=current_user["username"],
         domain=current_user["domain"],
-        user=User(id=current_user["user_id"]),
         id=session_id,
     )
 

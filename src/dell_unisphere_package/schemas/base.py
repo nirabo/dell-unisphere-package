@@ -30,9 +30,8 @@ class Role(BaseModel):
 
 
 class LoginSessionInfo(BaseModel):
-    roles: List[Role]
+    username: str
     domain: str
-    user: User
     id: str
     idleTimeout: int = 3600
     isPasswordChangeRequired: bool = False

@@ -1,10 +1,64 @@
-# Python-generated files
+# Ignore obsoleted documentation
+docs/obsoleted
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[oc]
-build/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Test Results
+# test.results.*.txt
+
+# Distribution / packaging
 dist/
-wheels/
-*.egg-info
+build/
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv.test
+env/
+.env
+.venv/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Logs
+*.log
+logs/
+
+# Local development settings
+.env.local
+.env.*.local
+
+# Docker
+.docker/
+
+# Project specific
+*.db
+*.sqlite3
+.aider*
