@@ -60,11 +60,25 @@ The API supports HTTP Basic Authentication with the following default credential
 ### Testing
 
 ```bash
-# Run the test script
+# Run all tests with coverage
 make test
+
+# Run only unit tests
+make test-unit
+
+# Run only integration tests
+make test-integration
+
+# Run only end-to-end tests
+make test-e2e
+
+# Generate HTML test report with coverage
+make test-report
 ```
 
-### Test Report
+Our testing approach follows the [Test Pyramid](docs/TestStrategy.md) methodology with comprehensive unit, integration, and end-to-end tests.
+
+### Test Report and Coverage
 
 A comprehensive test report is available at [Test Report](tests/scripts/test_results/test_report.md). This report includes:
 
@@ -73,12 +87,23 @@ A comprehensive test report is available at [Test Report](tests/scripts/test_res
 - Sample requests and responses
 - Coverage information
 
-## API Documentation
+Detailed coverage reports are generated in HTML format in the `tests/scripts/test_results/coverage` directory after running `make test-report`.
 
-Detailed API documentation is available in the `docs` directory:
+## Documentation
 
-- [Dell Unisphere REST API Documentation](docs/DellUnisphereRestAPI.md)
-- [Requirements Documentation](docs/Requirements.md)
+Comprehensive documentation is available in the `docs` directory:
+
+### API Documentation
+- [Dell Unisphere REST API Documentation](docs/DellUnisphereRestAPI.md) - Detailed specification of the Dell Unisphere REST API endpoints, request/response formats, and authentication mechanisms.
+
+### Project Documentation
+- [Requirements Documentation](docs/Requirements.md) - Functional and non-functional requirements for the Dell Unisphere Mock API.
+- [Test Strategy](docs/TestStrategy.md) - Comprehensive testing approach including unit, integration, and e2e tests organized according to the test pyramid approach.
+- [Use Cases](docs/UseCases.md) - Common use case scenarios and workflows for interacting with the Dell Unisphere API.
+- [Project Backlog](docs/Backlog.md) - Current development status, completed features, and planned enhancements.
+
+### Additional Resources
+The API also provides interactive documentation through Swagger UI, available at http://localhost:8000/docs when the server is running.
 
 ## Implemented Resource Types
 
@@ -146,11 +171,33 @@ POST /upload/files/types/candidateSoftwareVersion
 
 ## Development
 
+### Project Roadmap
+
+The project is currently at version 0.2.0. For a detailed view of completed features and planned enhancements, see the [Project Backlog](docs/Backlog.md).
+
+#### Current Status
+- Core API functionality is implemented with proper authentication and response formatting
+- Comprehensive test suite with unit, integration, and e2e tests
+- CI/CD pipelines with GitHub Actions
+- Support for both astral uv and standard pip package management
+
+#### Next Steps
+- Additional Dell Unisphere API endpoints
+- Enhanced documentation and examples
+- Improved test coverage
+- Containerization
+
+For more details on the development roadmap, refer to the [Project Backlog](docs/Backlog.md).
+
 ### Project Structure
 
 ```
 dell-unisphere-package/
 ├── docs/                 # Documentation files
+│   ├── Backlog.md        # Project roadmap and status
+│   ├── TestStrategy.md   # Testing methodology
+│   ├── UseCases.md       # API usage examples
+│   └── Requirements.md   # Project requirements
 ├── src/                  # Source code
 │   └── dell_unisphere_package/
 │       ├── controllers/  # Business logic
@@ -159,8 +206,12 @@ dell-unisphere-package/
 │       ├── schemas/      # Pydantic schemas
 │       └── main.py       # Application entry point
 ├── tests/                # Test files
+│   ├── e2e/              # End-to-end tests
+│   ├── integration/      # Integration tests
 │   ├── scripts/          # Test scripts
+│   │   └── test_results/ # Test reports and coverage
 │   └── unit/             # Unit tests
+├── .github/workflows/    # GitHub Actions CI/CD
 ├── Makefile              # Build and run commands
 └── README.md             # This file
 ```
@@ -173,8 +224,15 @@ To add a new resource type:
 2. Add the storage model in `src/dell_unisphere_package/models/`
 3. Create routes in `src/dell_unisphere_package/routes/`
 4. Register the routes in `src/dell_unisphere_package/routes/__init__.py`
-5. Update tests in `tests/scripts/test_api.sh`
-6. Update documentation in `docs/`
+5. Add tests following the [Test Strategy](docs/TestStrategy.md):
+   - Unit tests in `tests/unit/`
+   - Integration tests in `tests/integration/`
+   - End-to-end tests in `tests/e2e/`
+6. Update API test scripts in `tests/scripts/test_api.sh`
+7. Update documentation in `docs/`
+8. Update the [Project Backlog](docs/Backlog.md) to reflect the new feature
+
+Ensure all new code maintains or improves the current test coverage levels. Run `make test-report` to generate coverage reports and verify your changes meet the project's quality standards.
 
 ## License
 
