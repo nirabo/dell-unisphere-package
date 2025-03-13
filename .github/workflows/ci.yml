@@ -90,7 +90,7 @@ jobs:
             source .venv/bin/activate
           fi
           mkdir -p tests/scripts/test_results
-          bash tests/scripts/run_api_tests.sh > tests/scripts/test_results/test_report.md
+          bash tests/scripts/api_tests.sh
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
