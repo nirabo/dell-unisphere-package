@@ -27,8 +27,11 @@ This package provides a FastAPI-based implementation of the Dell Unisphere API, 
 git clone <repository-url>
 cd dell-unisphere-package
 
-# Install dependencies using astral uv
+# Install dependencies using astral uv (recommended)
 uv pip install -e .
+
+# Or using standard pip
+pip install -e .
 ```
 
 ## Usage

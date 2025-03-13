@@ -27,14 +27,37 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e .
+          # Try to use uv if available, otherwise fall back to pip
+          if command -v uv &> /dev/null; then
+            # Create a virtual environment first
+            uv venv
+            # Activate the virtual environment
+            source .venv/bin/activate
+            # Install dependencies
+            uv pip install -e .
+          else
+            pip install -e .
+          fi
 
       - name: Run tests
-        run: make test
+        run: |
+          # If using uv, activate the virtual environment first
+          if command -v uv &> /dev/null && [ -d ".venv" ]; then
+            source .venv/bin/activate
+          fi
+          make test
 
       - name: Generate coverage report
         run: |
-          uv run pytest tests --cov=src --cov-report=xml:coverage.xml --cov-report=term
+          # If using uv, activate the virtual environment first
+          if command -v uv &> /dev/null && [ -d ".venv" ]; then
+            source .venv/bin/activate
+            # Use python -m pytest for proper module resolution as per our testing strategy
+            python -m pytest tests --cov=src --cov-report=xml:coverage.xml --cov-report=term
+          else
+            # Fall back to direct uv run if no venv is found
+            uv run python -m pytest tests --cov=src --cov-report=xml:coverage.xml --cov-report=term
+          fi
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -44,6 +67,10 @@ jobs:
 
       - name: Generate test report
         run: |
+          # If using uv, activate the virtual environment first
+          if command -v uv &> /dev/null && [ -d ".venv" ]; then
+            source .venv/bin/activate
+          fi
           mkdir -p tests/scripts/test_results
           bash tests/scripts/run_api_tests.sh > tests/scripts/test_results/test_report.md
 

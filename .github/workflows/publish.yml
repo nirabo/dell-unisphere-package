@@ -22,7 +22,17 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          uv pip install build twine
+          # Try to use uv if available, otherwise fall back to pip
+          if command -v uv &> /dev/null; then
+            # Create a virtual environment first
+            uv venv
+            # Activate the virtual environment
+            source .venv/bin/activate
+            # Install build dependencies
+            uv pip install build twine
+          else
+            pip install build twine
+          fi
 
       - name: Build package
         run: |

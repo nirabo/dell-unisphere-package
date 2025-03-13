@@ -25,10 +25,19 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Create a virtual environment first
+          uv venv
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Install pre-commit
           uv pip install pre-commit
 
       - name: Run pre-commit hooks
-        run: pre-commit run --all-files
+        run: |
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Run pre-commit hooks
+          pre-commit run --all-files
 
   test:
     runs-on: ubuntu-latest
@@ -48,10 +57,25 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv pip install -e .
+          # Try to use uv if available, otherwise fall back to pip
+          if command -v uv &> /dev/null; then
+            # Create a virtual environment first
+            uv venv
+            # Activate the virtual environment
+            source .venv/bin/activate
+            # Install dependencies
+            uv pip install -e .
+          else
+            pip install -e .
+          fi
 
       - name: Run tests
-        run: make test
+        run: |
+          # If using uv, activate the virtual environment first
+          if command -v uv &> /dev/null && [ -d ".venv" ]; then
+            source .venv/bin/activate
+          fi
+          make test
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -61,6 +85,10 @@ jobs:
 
       - name: Generate test report
         run: |
+          # If using uv, activate the virtual environment first
+          if command -v uv &> /dev/null && [ -d ".venv" ]; then
+            source .venv/bin/activate
+          fi
           mkdir -p tests/scripts/test_results
           bash tests/scripts/run_api_tests.sh > tests/scripts/test_results/test_report.md
 
@@ -88,14 +116,25 @@ jobs:
 
       - name: Install build dependencies
         run: |
+          # Create a virtual environment first
+          uv venv
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Install build dependencies
           uv pip install build twine
 
       - name: Build package
         run: |
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Build the package
           python -m build
 
       - name: Check package
         run: |
+          # Activate the virtual environment
+          source .venv/bin/activate
+          # Check the package
           twine check dist/*
 
       - name: Upload package artifacts
