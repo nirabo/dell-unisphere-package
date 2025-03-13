@@ -144,7 +144,7 @@ SWAGGER_UI_PARAMETERS = {
 app = FastAPI(
     title="Dell EMC Unisphere Test API",
     description="A test implementation of the Dell EMC Unisphere REST API",
-    version="1.0.0",
+    version="0.2.0",
     swagger_ui_parameters=SWAGGER_UI_PARAMETERS,
 )
 

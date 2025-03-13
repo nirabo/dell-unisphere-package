@@ -61,6 +61,15 @@ The API supports HTTP Basic Authentication with the following default credential
 make test
 ```
 
+### Test Report
+
+A comprehensive test report is available at [Test Report](tests/scripts/test_results/test_report.md). This report includes:
+
+- API version information
+- Test results for all major endpoints
+- Sample requests and responses
+- Coverage information
+
 ## API Documentation
 
 Detailed API documentation is available in the `docs` directory:
