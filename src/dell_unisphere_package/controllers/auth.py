@@ -52,28 +52,49 @@ def format_response(
     data, request: Request, base_url="/api", instance_type=None, instance_id=None
 ):
     """Format the API response according to Dell Unisphere API standards."""
+    from datetime import datetime
+
+    current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
     if isinstance(data, list):
         # Collection response
+        base_url_path = f"{base_url}/types/{instance_type}/instances"
+        full_base_url = (
+            f"{request.url.scheme}://{request.url.netloc}{base_url_path}?per_page=2000"
+        )
+
         entries = []
         for i, item in enumerate(data):
-            entry = {"content": item}
-            if instance_type:
-                entry["id"] = f"{instance_type}_{i}"
+            item_id = getattr(item, "id", f"{i}")
+            instance_base_url = f"{request.url.scheme}://{request.url.netloc}{base_url}/instances/{instance_type}"
+
+            entry = {
+                "@base": instance_base_url,
+                "content": item,
+                "links": [{"rel": "self", "href": f"/{item_id}"}],
+                "updated": current_time,
+            }
             entries.append(entry)
 
         response = {
+            "@base": full_base_url,
+            "updated": current_time,
+            "links": [{"rel": "self", "href": "&page=1"}],
             "entries": entries,
         }
-
-        # Add base URL
-        base = f"{request.url.scheme}://{request.url.netloc}{base_url}"
-        response["base"] = base
 
         return response
     else:
         # Single instance response
+        instance_base_url = f"{request.url.scheme}://{request.url.netloc}{base_url}/instances/{instance_type}"
         if instance_id:
-            return {"content": data, "id": instance_id}
+            response = {
+                "@base": instance_base_url,
+                "content": data,
+                "links": [{"rel": "self", "href": f"/{instance_id}"}],
+                "updated": current_time,
+            }
+            return response
         return data
 
 
