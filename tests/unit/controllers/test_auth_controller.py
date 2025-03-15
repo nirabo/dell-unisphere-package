@@ -2,14 +2,15 @@
 Unit tests for authentication controller functions.
 """
 
-import pytest
-from fastapi import HTTPException, Request
 from unittest.mock import MagicMock
 
+import pytest
+from fastapi import HTTPException, Request
+
 from dell_unisphere_package.controllers.auth import (
-    get_current_user,
-    format_response,
     error_response,
+    format_response,
+    get_current_user,
 )
 
 

@@ -5,11 +5,11 @@ This package contains the API endpoints for the Dell Unisphere API.
 
 from fastapi import APIRouter
 
-from .system import router as system_router
 from .auth import router as auth_router
+from .software import router as software_router
+from .system import router as system_router
 from .upgrade import router as upgrade_router
 from .upload import router as upload_router
-from .software import router as software_router
 
 router = APIRouter()
 router.include_router(system_router)

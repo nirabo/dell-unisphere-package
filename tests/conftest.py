@@ -3,15 +3,16 @@ Global pytest fixtures and configuration.
 """
 
 import os
+
 import pytest
 from fastapi.testclient import TestClient
 
 from dell_unisphere_package.main import app
 from dell_unisphere_package.models.storage import (
-    users,
-    sessions,
     candidate_software_versions,
+    sessions,
     upgrade_sessions,
+    users,
 )
 
 

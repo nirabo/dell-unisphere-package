@@ -62,3 +62,7 @@ logs/
 *.db
 *.sqlite3
 .aider*
+
+# Test API
+cookie.jar
+*.bin

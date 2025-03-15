@@ -3,16 +3,17 @@
 This module defines the Pydantic models related to software upgrades.
 """
 
-from typing import List
 from datetime import datetime, timedelta
+from typing import List
+
 from pydantic import BaseModel
 
 from .base import (
-    UpgradeTypeEnum,
-    UpgradeStatusEnum,
-    UpgradeSessionTypeEnum,
     TaskStatusEnum,
     TaskTypeEnum,
+    UpgradeSessionTypeEnum,
+    UpgradeStatusEnum,
+    UpgradeTypeEnum,
 )
 
 

@@ -177,6 +177,14 @@ Cookie: mod_sec_emc={cookie_value}
 
 22. The candidate software versions store must be empty upon initialization.
 
+23. The API must enforce a single-candidate policy for software upgrades:
+    - Only one candidate software version can exist in the system at any time
+    - When a new candidate is uploaded, it must replace any existing candidate
+    - After a successful upgrade, the candidate software version must be automatically removed
+    - The system must handle concurrent upload attempts appropriately to maintain the single-candidate invariant
+
+    **Rationale**: This requirement ensures that the mock API accurately reflects the behavior of the actual Dell Unisphere system, where only one upgrade candidate can exist at a time. This prevents confusion about which version would be used for an upgrade and simplifies the upgrade workflow.
+
 #### Software Upgrade Session
 
 23. The API must implement the `softwareUpgradeSession` resource type with the following embedded resource types:

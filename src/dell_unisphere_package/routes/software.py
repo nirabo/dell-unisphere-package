@@ -3,11 +3,11 @@
 This module defines the API endpoints for installed software information.
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
-from ..controllers.auth import get_current_user, format_response
-from ..schemas.base import InstalledSoftwareVersion
+from ..controllers.auth import format_response, get_current_user
 from ..models.storage import installed_software_versions
+from ..schemas.base import InstalledSoftwareVersion
 
 router = APIRouter(prefix="/api")
 

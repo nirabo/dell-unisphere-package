@@ -3,9 +3,10 @@
 This module defines the Pydantic models used for data validation and serialization.
 """
 
-from typing import List
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -44,11 +45,16 @@ class UpgradeTypeEnum(str, Enum):
 
 
 class UpgradeStatusEnum(int, Enum):
-    PENDING = 0
-    IN_PROGRESS = 1
-    COMPLETED = 2
-    FAILED = 3
-    PAUSED = 4
+    NOT_STARTED = 0  # Upgrade_Not_Started
+    IN_PROGRESS = 1  # Upgrade_in_Progress
+    COMPLETED = 2  # Upgrade_Completed
+    FAILED = 3  # Upgrade_Failed
+    FAILED_LOCK = 4  # Upgrade_Failed_Lock
+    CANCELLED = 5  # Upgrade_Cancelled
+    PAUSED = 6  # Upgrade_Paused
+    ACKNOWLEDGED = 7  # Upgrade_Acknowledged
+    WAITING_FOR_USER = 8  # Upgrade_Waiting_For_User
+    PAUSED_LOCK = 9  # Upgrade_Paused_Lock
 
 
 class UpgradeSessionTypeEnum(int, Enum):

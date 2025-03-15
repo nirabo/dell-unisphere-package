@@ -4,7 +4,7 @@ This module provides in-memory storage for the API.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
 
 # In-memory storage
 sessions: Dict[str, Any] = {}

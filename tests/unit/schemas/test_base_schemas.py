@@ -4,15 +4,12 @@ Unit tests for base schemas.
 
 import pytest
 
-from dell_unisphere_package.schemas.base import (
+from dell_unisphere_package.schemas.base import (  # LoginSessionInfo,; User,; Role,
     BasicSystemInfo,
-    # LoginSessionInfo,
-    # User,
-    # Role,
+    FirmwarePackage,
     InstalledSoftwareVersion,
     InstalledSoftwareVersionLanguage,
     InstalledSoftwareVersionPackage,
-    FirmwarePackage,
 )
 
 

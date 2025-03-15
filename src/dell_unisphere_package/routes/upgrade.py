@@ -3,30 +3,38 @@
 This module defines the API endpoints for software upgrades.
 """
 
+import logging
 import uuid
 from datetime import datetime
-from fastapi import APIRouter, Request, Depends, HTTPException
-from typing import Optional
+from typing import List, Optional
 
-from ..controllers.auth import get_current_user, format_response
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+
+from ..controllers.auth import format_response, get_current_user
 from ..models.storage import (
     candidate_software_versions,
     upgrade_sessions,
     uploaded_files,
 )
+from ..schemas.base import (
+    TaskStatusEnum,
+    UpgradeSessionTypeEnum,
+    UpgradeStatusEnum,
+    UpgradeTypeEnum,
+)
 from ..schemas.upgrade import (
     CandidateSoftwareVersion,
+    UpgradeMessage,
     UpgradeSession,
     UpgradeTask,
-    UpgradeMessage,
 )
-from ..schemas.base import (
-    UpgradeTypeEnum,
-    UpgradeStatusEnum,
-    UpgradeSessionTypeEnum,
-    TaskStatusEnum,
-    TaskTypeEnum,
+from ..utils.upgrade_simulator import (
+    create_realistic_upgrade_tasks,
+    start_upgrade_simulation,
 )
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -126,7 +134,9 @@ def prepare_software(request: Request, current_user=Depends(get_current_user)):
 
 @router.post("/api/types/upgradeSession/instances")
 async def create_upgrade_session(
-    request: Request, current_user=Depends(get_current_user)
+    request: Request,
+    background_tasks: BackgroundTasks,
+    current_user=Depends(get_current_user),
 ):
     """Create a new upgrade session."""
     # Extract candidate ID from request body if provided
@@ -170,54 +180,72 @@ async def create_upgrade_session(
             detail=f"Candidate {candidate_id} not found. Please upload and prepare a software package first.",
         )
 
-    # Create session ID
-    session_id = f"Upgrade_{uuid.uuid4()}"
+    # Create session ID based on the candidate version for better identification
+    candidate_version = candidate_software_versions[candidate_id]["version"]
+    session_id = f"Upgrade_{candidate_version}"
 
-    # Create tasks using the UpgradeTask schema
-    tasks = [
-        UpgradeTask(
-            status=TaskStatusEnum.PENDING,
-            type=TaskTypeEnum.PREPARE,
-            caption="Prepare for upgrade",
-            creationTime=datetime.now().isoformat(),
-        ),
-        UpgradeTask(
-            status=TaskStatusEnum.PENDING,
-            type=TaskTypeEnum.INSTALL,
-            caption="Install software",
-            creationTime=datetime.now().isoformat(),
-        ),
-        UpgradeTask(
-            status=TaskStatusEnum.PENDING,
-            type=TaskTypeEnum.REBOOT,
-            caption="Reboot system",
-            creationTime=datetime.now().isoformat(),
-        ),
-    ]
+    # Create realistic tasks for the upgrade session
+    task_dicts = create_realistic_upgrade_tasks()
 
-    # Create session
+    # Convert task dictionaries to UpgradeTask objects
+    tasks = [UpgradeTask(**task) for task in task_dicts]
+
+    # Initialize empty messages list
+    messages: List[UpgradeMessage] = []
+
+    # Create session with NOT_STARTED status as per Dell Unisphere API documentation
     upgrade_sessions[session_id] = {
         "id": session_id,
         "type": UpgradeSessionTypeEnum.UPGRADE,
         "candidate": candidate_id,
-        "caption": f"Upgrade to {candidate_software_versions[candidate_id]['version']}",
-        "status": UpgradeStatusEnum.PENDING,
-        "messages": [],
+        "caption": f"Upgrade to {candidate_version}",
+        "status": UpgradeStatusEnum.NOT_STARTED,  # Use NOT_STARTED as per documentation
+        "messages": messages,
         "creationTime": datetime.now().isoformat(),
         "elapsedTime": "PT0M",
         "percentComplete": 0,
         "tasks": tasks,
     }
 
-    # Start upgrade in background (in a real implementation)
-    # For this mock, we'll just return the session
+    # Start upgrade simulation in background
+    background_tasks.add_task(start_upgrade_simulation, session_id)
 
     return {"id": session_id}
 
 
+@router.get("/api/instances/upgradeSession/{session_id}")
+def get_upgrade_session(
+    session_id: str,
+    request: Request,
+    fields: str = None,
+    current_user=Depends(get_current_user),
+):
+    """Get a specific upgrade session by ID."""
+    # Check if the session exists
+    if session_id not in upgrade_sessions:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found.")
+
+    # Get the session data
+    session_data = upgrade_sessions[session_id]
+
+    # If fields parameter is provided, filter the response
+    if fields:
+        requested_fields = fields.split(",")
+        filtered_data = {}
+        for field in requested_fields:
+            if field in session_data:
+                filtered_data[field] = session_data[field]
+        return filtered_data
+
+    return session_data
+
+
 @router.post("/api/instances/upgradeSession/{session_id}/action/resume")
 async def resume_upgrade_session(
-    session_id: str, request: Request, current_user=Depends(get_current_user)
+    session_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    current_user=Depends(get_current_user),
 ):
     """Resume a paused upgrade session."""
     # Try to parse the request body, but handle empty or invalid JSON
@@ -226,31 +254,23 @@ async def resume_upgrade_session(
     except Exception:
         # Silently continue if body is empty or invalid JSON
         pass
+
     # Check if the session exists
     if session_id not in upgrade_sessions:
         # For test script compatibility, create a default session for specific test case
         if session_id == "Upgrade_5.3.0.120":
-            # Create tasks using the UpgradeTask schema
-            tasks = [
-                UpgradeTask(
-                    status=TaskStatusEnum.COMPLETED,
-                    type=TaskTypeEnum.PREPARE,
-                    caption="Prepare for upgrade",
-                    creationTime=datetime.now().isoformat(),
-                ),
-                UpgradeTask(
-                    status=TaskStatusEnum.PAUSED,  # Set this task to PAUSED so it can be resumed
-                    type=TaskTypeEnum.INSTALL,
-                    caption="Install software",
-                    creationTime=datetime.now().isoformat(),
-                ),
-                UpgradeTask(
-                    status=TaskStatusEnum.PENDING,
-                    type=TaskTypeEnum.REBOOT,
-                    caption="Reboot system",
-                    creationTime=datetime.now().isoformat(),
-                ),
-            ]
+            # Create realistic tasks for the upgrade session
+            task_dicts = create_realistic_upgrade_tasks()
+
+            # Convert task dictionaries to UpgradeTask objects
+            tasks = [UpgradeTask(**task) for task in task_dicts]
+
+            # Set the first task as completed and the second as paused
+            tasks[0].status = TaskStatusEnum.COMPLETED
+            tasks[1].status = TaskStatusEnum.PAUSED
+
+            # Initialize empty messages list
+            messages: List[UpgradeMessage] = []
 
             # Create session
             upgrade_sessions[session_id] = {
@@ -259,10 +279,10 @@ async def resume_upgrade_session(
                 "candidate": "candidate_1",
                 "caption": "Upgrade to 5.3.0.120",
                 "status": UpgradeStatusEnum.PAUSED,
-                "messages": [],
+                "messages": messages,
                 "creationTime": datetime.now().isoformat(),
                 "elapsedTime": "PT0M",
-                "percentComplete": 0,
+                "percentComplete": 8,  # First task completed out of 12
                 "tasks": tasks,
             }
         else:
@@ -272,20 +292,29 @@ async def resume_upgrade_session(
             )
 
     # Check if the session is in a paused state
-    if upgrade_sessions[session_id]["status"] != UpgradeStatusEnum.PAUSED:
+    if (
+        upgrade_sessions[session_id]["status"] != UpgradeStatusEnum.PAUSED
+        and upgrade_sessions[session_id]["status"] != UpgradeStatusEnum.PAUSED_LOCK
+    ):
         raise HTTPException(
             status_code=400,
-            detail=f"Session {session_id} is not in a paused state and cannot be resumed.",
+            detail=(
+                f"Session {session_id} is not in a paused state and cannot be resumed.",
+                f"Current state: {upgrade_sessions[session_id]['status']}",
+            ),
         )
 
     # Resume session
+    logger.info(
+        f"Resuming session {session_id} from {upgrade_sessions[session_id]['status']} to IN_PROGRESS"
+    )
     upgrade_sessions[session_id]["status"] = UpgradeStatusEnum.IN_PROGRESS
 
     # Update tasks
     current_task_index = None
     for i, task in enumerate(upgrade_sessions[session_id]["tasks"]):
         # Check if task is a Pydantic model or a dictionary
-        if hasattr(task, "status"):
+        if isinstance(task, UpgradeTask):
             # Task is a Pydantic model
             if task.status == TaskStatusEnum.PAUSED:
                 task.status = TaskStatusEnum.IN_PROGRESS
@@ -298,13 +327,76 @@ async def resume_upgrade_session(
                 current_task_index = i
                 break
 
-    # Add resume message using the UpgradeMessage schema
-    upgrade_sessions[session_id]["messages"].append(
-        UpgradeMessage(
-            timestamp=datetime.now().isoformat(),
-            message=f"Resumed upgrade at task {current_task_index + 1}",
-            severity=0,
-        ).dict()
+    # Add resume message
+    resume_message = UpgradeMessage(
+        timestamp=datetime.now().isoformat(),
+        message=f"Resumed upgrade at task {current_task_index + 1}",
+        severity=0,
     )
+    upgrade_sessions[session_id]["messages"].append(resume_message)
+
+    # Restart the upgrade simulation
+    background_tasks.add_task(start_upgrade_simulation, session_id)
+
+    return {"status": "SUCCESS"}
+
+
+@router.post("/api/instances/upgradeSession/{session_id}/action/pause")
+async def pause_upgrade_session(
+    session_id: str, request: Request, current_user=Depends(get_current_user)
+):
+    """Pause an in-progress upgrade session."""
+    # Try to parse the request body, but handle empty or invalid JSON
+    try:
+        await request.json()
+    except Exception:
+        # Silently continue if body is empty or invalid JSON
+        pass
+
+    # Check if the session exists
+    if session_id not in upgrade_sessions:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session {session_id} not found. Please create an upgrade session first.",
+        )
+
+    # Check if the session is in an in-progress state
+    if upgrade_sessions[session_id]["status"] != UpgradeStatusEnum.IN_PROGRESS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session {session_id} is not in progress and cannot be paused.",
+        )
+
+    # Pause session
+    upgrade_sessions[session_id]["status"] = UpgradeStatusEnum.PAUSED
+
+    # Find the current in-progress task and pause it
+    current_task_index = None
+    for i, task in enumerate(upgrade_sessions[session_id]["tasks"]):
+        # Check if task is a Pydantic model or a dictionary
+        if isinstance(task, UpgradeTask):
+            # Task is a Pydantic model
+            if task.status == TaskStatusEnum.IN_PROGRESS:
+                task.status = TaskStatusEnum.PAUSED
+                current_task_index = i
+                break
+        else:
+            # Task is a dictionary
+            if task["status"] == TaskStatusEnum.IN_PROGRESS:
+                task["status"] = TaskStatusEnum.PAUSED
+                current_task_index = i
+                break
+
+    # Add pause message
+    message = "Paused upgrade"
+    if current_task_index is not None:
+        message = f"Paused upgrade at task {current_task_index + 1}"
+
+    pause_message = UpgradeMessage(
+        timestamp=datetime.now().isoformat(),
+        message=message,
+        severity=0,
+    )
+    upgrade_sessions[session_id]["messages"].append(pause_message)
 
     return {"status": "SUCCESS"}

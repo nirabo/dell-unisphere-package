@@ -4,11 +4,11 @@ This package contains the business logic and data storage for the API.
 """
 
 from .storage import (
-    sessions,
-    users,
     candidate_software_versions,
+    sessions,
     upgrade_sessions,
     uploaded_files,
+    users,
 )
 
 __all__ = [

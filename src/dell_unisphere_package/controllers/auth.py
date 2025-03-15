@@ -4,7 +4,8 @@ This module handles authentication and session management.
 """
 
 import uuid
-from fastapi import Request, HTTPException
+
+from fastapi import HTTPException, Request
 
 from ..models.storage import sessions, users
 

@@ -175,14 +175,14 @@ test_upgrade_flow() {
         -H \"X-EMC-REST-CLIENT: true\" \
         -H \"EMC-CSRF-TOKEN: $CSRF_TOKEN\""
 
+    CANDIDATE_RESPONSE=$(eval "$CANDIDATE_CMD")
+    FORMATTED_CANDIDATE=$(echo "$CANDIDATE_RESPONSE" | python3 -m json.tool)
+
+    # Log to report file
     echo "Request:" >> $REPORT_FILE
     echo '```bash' >> $REPORT_FILE
     echo "$CANDIDATE_CMD" >> $REPORT_FILE
     echo '```' >> $REPORT_FILE
-
-    CANDIDATE_RESPONSE=$(eval "$CANDIDATE_CMD")
-    FORMATTED_CANDIDATE=$(echo "$CANDIDATE_RESPONSE" | python3 -m json.tool)
-
     echo "Response:" >> $REPORT_FILE
     echo '```json' >> $REPORT_FILE
     echo "$FORMATTED_CANDIDATE" >> $REPORT_FILE
@@ -213,20 +213,20 @@ test_upgrade_flow() {
         -H \"Content-Type: application/json\" \
         -d '$CREATE_SESSION_DATA'"
 
+    CREATE_SESSION_RESPONSE=$(eval "$CREATE_SESSION_CMD")
+    FORMATTED_SESSION=$(echo "$CREATE_SESSION_RESPONSE" | python3 -m json.tool)
+
+    # Log to report file
     echo "Request:" >> $REPORT_FILE
     echo '```bash' >> $REPORT_FILE
     echo "$CREATE_SESSION_CMD" >> $REPORT_FILE
     echo '```' >> $REPORT_FILE
-
-    CREATE_SESSION_RESPONSE=$(eval "$CREATE_SESSION_CMD")
-    FORMATTED_SESSION=$(echo "$CREATE_SESSION_RESPONSE" | python3 -m json.tool)
-
     echo "Response:" >> $REPORT_FILE
     echo '```json' >> $REPORT_FILE
     echo "$FORMATTED_SESSION" >> $REPORT_FILE
     echo '```' >> $REPORT_FILE
 
-    # Extract the session ID using grep and sed
+    # Extract the session ID
     SESSION_ID=$(echo "$CREATE_SESSION_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
 
     if [ -z "$SESSION_ID" ]; then
@@ -238,9 +238,37 @@ test_upgrade_flow() {
     echo -e "${GREEN}Created upgrade session: $SESSION_ID${NC}"
     echo "Created upgrade session: $SESSION_ID" >> $REPORT_FILE
 
-    # 3. Monitor the upgrade progress
-    echo -e "\n${YELLOW}Step 3: Monitoring upgrade progress${NC}"
-    echo "### Step 3: Monitoring upgrade progress" >> $REPORT_FILE
+    # 3. Start the upgrade process by calling the resume endpoint
+    echo -e "\n${YELLOW}Step 3: Starting the upgrade process${NC}"
+    echo "### Step 3: Starting the upgrade process" >> $REPORT_FILE
+
+    RESUME_CMD="curl -s -k -L -X POST \"$HOST/api/instances/upgradeSession/$SESSION_ID/action/resume\" \
+        -u \"$USERNAME:$PASSWORD\" \
+        -b $COOKIE_JAR \
+        -H \"X-EMC-REST-CLIENT: true\" \
+        -H \"EMC-CSRF-TOKEN: $CSRF_TOKEN\" \
+        -H \"Content-Type: application/json\" \
+        -d '{}'"
+
+    RESUME_RESPONSE=$(eval "$RESUME_CMD")
+    FORMATTED_RESUME=$(echo "$RESUME_RESPONSE" | python3 -m json.tool)
+
+    # Log to report file
+    echo "Request:" >> $REPORT_FILE
+    echo '```bash' >> $REPORT_FILE
+    echo "$RESUME_CMD" >> $REPORT_FILE
+    echo '```' >> $REPORT_FILE
+    echo "Response:" >> $REPORT_FILE
+    echo '```json' >> $REPORT_FILE
+    echo "$FORMATTED_RESUME" >> $REPORT_FILE
+    echo '```' >> $REPORT_FILE
+
+    echo -e "${GREEN}Upgrade process started${NC}"
+    echo "Upgrade process started" >> $REPORT_FILE
+
+    # 4. Monitor the upgrade progress
+    echo -e "\n${YELLOW}Step 4: Monitoring upgrade progress${NC}"
+    echo "### Step 4: Monitoring upgrade progress" >> $REPORT_FILE
     echo "Monitoring the upgrade session until completion" >> $REPORT_FILE
 
     # Create a table header for task status tracking
@@ -249,7 +277,7 @@ test_upgrade_flow() {
 
     # Initialize variables for tracking
     COMPLETED=false
-    MAX_WAIT_TIME=60  # Maximum wait time in seconds
+    MAX_WAIT_TIME=120  # Maximum wait time in seconds
     START_TIME=$(date +%s)
     LAST_TASK_STATUS=""
 
@@ -274,42 +302,67 @@ test_upgrade_flow() {
 
         STATUS_RESPONSE=$(eval "$GET_STATUS_CMD")
 
-        # Find our session in the response using grep and awk
-        SESSION_BLOCK=$(echo "$STATUS_RESPONSE" | awk -v RS='{' -v FS='}' '{for(i=1;i<=NF;i++) if($i ~ /"id":"'$SESSION_ID'"/) print "{"$i"}"}' | head -1)
+        # Process the response with a Python script for better JSON handling
+        SESSION_INFO=$(echo "$STATUS_RESPONSE" | python3 -c "
+import sys, json
 
-        if [ -n "$SESSION_BLOCK" ]; then
-            # Extract status, progress, and tasks using grep and sed
-            STATUS=$(echo "$SESSION_BLOCK" | grep -o '"status":"[^"]*"' | sed 's/"status":"\([^"]*\)"/\1/')
-            PROGRESS=$(echo "$SESSION_BLOCK" | grep -o '"percentComplete":[0-9]*' | sed 's/"percentComplete":\([0-9]*\)/\1/')
+try:
+    data = json.load(sys.stdin)
 
-            # Extract tasks information
-            TASKS_BLOCK=$(echo "$SESSION_BLOCK" | awk -v RS='"tasks":\[' -v FS='\]' '{print $1}')
-            TASK_STATUSES=""
+    # Find our session in the entries
+    session = None
+    if 'entries' in data:
+        for entry in data['entries']:
+            if 'content' in entry and entry['content'].get('id') == '$SESSION_ID':
+                session = entry['content']
+                break
 
-            # Process each task
-            while read -r TASK; do
-                if [ -n "$TASK" ]; then
-                    TASK_NAME=$(echo "$TASK" | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/')
-                    TASK_STATUS=$(echo "$TASK" | grep -o '"status":"[^"]*"' | sed 's/"status":"\([^"]*\)"/\1/')
+    if session:
+        status = session.get('status', '')
+        progress = session.get('percentComplete', 0)
 
-                    if [ -n "$TASK_NAME" ] && [ -n "$TASK_STATUS" ]; then
-                        if [ -n "$TASK_STATUSES" ]; then
-                            TASK_STATUSES="$TASK_STATUSES, "
-                        fi
-                        TASK_STATUSES="$TASK_STATUSES$TASK_NAME: $TASK_STATUS"
-                    fi
-                fi
-            done < <(echo "$TASKS_BLOCK" | sed 's/},{/}\n{/g')
+        # Get task statuses
+        task_statuses = []
+        for task in session.get('tasks', []):
+            task_name = task.get('caption', 'Unknown')
+            task_status = task.get('status', '')
+            task_statuses.append(f'{task_name}: {task_status}')
+
+        # Format as JSON for easy parsing
+        output = {
+            'status': status,
+            'progress': progress,
+            'task_statuses': task_statuses
+        }
+        print(json.dumps(output))
+    else:
+        print('{}')
+except Exception as e:
+    print('{}')
+")
+
+        # Parse the session info
+        if [ -n "$SESSION_INFO" ] && [ "$SESSION_INFO" != "{}" ]; then
+            STATUS=$(echo "$SESSION_INFO" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('status', ''))")
+            PROGRESS=$(echo "$SESSION_INFO" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('progress', 0))")
+            TASK_STATUSES=$(echo "$SESSION_INFO" | python3 -c "import sys, json; data=json.load(sys.stdin); print('\n'.join(data.get('task_statuses', [])))")
 
             # Format the current time
             CURRENT_TIME_FMT=$(date +"%H:%M:%S")
 
             # Print progress to console
-            echo -e "${YELLOW}[$CURRENT_TIME_FMT] Status: $STATUS, Progress: $PROGRESS%, Tasks: $TASK_STATUSES${NC}"
+            echo -e "${YELLOW}[$CURRENT_TIME_FMT] Status: $STATUS, Progress: $PROGRESS%${NC}"
+            echo -e "${CYAN}Tasks:${NC}"
+            echo -e "$TASK_STATUSES" | while read -r TASK; do
+                if [ -n "$TASK" ]; then
+                    echo -e "  ${CYAN}$TASK${NC}"
+                fi
+            done
 
             # Add to report if task status changed
             if [ "$TASK_STATUSES" != "$LAST_TASK_STATUS" ]; then
-                echo -e "| $CURRENT_TIME_FMT | $STATUS | $PROGRESS% | $TASK_STATUSES |" >> $REPORT_FILE
+                TASK_STATUS_FORMATTED=$(echo "$TASK_STATUSES" | tr '\n' ', ' | sed 's/,$//')
+                echo -e "| $CURRENT_TIME_FMT | $STATUS | $PROGRESS% | $TASK_STATUS_FORMATTED |" >> $REPORT_FILE
                 LAST_TASK_STATUS="$TASK_STATUSES"
             fi
 
@@ -336,9 +389,9 @@ test_upgrade_flow() {
         sleep 2
     done
 
-    # 4. Get final session status
-    echo -e "\n${YELLOW}Step 4: Getting final session details${NC}"
-    echo "### Step 4: Getting final session details" >> $REPORT_FILE
+    # 5. Get final session status
+    echo -e "\n${YELLOW}Step 5: Getting final session details${NC}"
+    echo "### Step 5: Getting final session details" >> $REPORT_FILE
 
     FINAL_STATUS_CMD="curl -s -k -L -X GET \"$HOST/api/types/upgradeSession/instances?fields=id,status,percentComplete,tasks,messages\" \
         -u \"$USERNAME:$PASSWORD\" \
@@ -354,42 +407,47 @@ test_upgrade_flow() {
     echo "$FORMATTED_FINAL_STATUS" >> $REPORT_FILE
     echo '```' >> $REPORT_FILE
 
-    # Extract and display task completion summary
+    # Extract and display task completion summary using Python for better JSON handling
     echo -e "\n${YELLOW}Task Completion Summary:${NC}"
     echo "### Task Completion Summary" >> $REPORT_FILE
     echo "| Task Name | Status | Duration |" >> $REPORT_FILE
     echo "|-----------|--------|----------|" >> $REPORT_FILE
 
-    # Find our session in the response
-    SESSION_BLOCK=$(echo "$FINAL_STATUS_RESPONSE" | awk -v RS='{' -v FS='}' '{for(i=1;i<=NF;i++) if($i ~ /"id":"'$SESSION_ID'"/) print "{"$i"}"}' | head -1)
+    # Process the final status with Python
+    TASK_SUMMARY=$(echo "$FINAL_STATUS_RESPONSE" | python3 -c "
+import sys, json
 
-    if [ -n "$SESSION_BLOCK" ]; then
-        # Extract tasks information
-        TASKS_BLOCK=$(echo "$SESSION_BLOCK" | awk -v RS='"tasks":\[' -v FS='\]' '{print $1}')
+try:
+    data = json.load(sys.stdin)
 
-        # Process each task
-        while read -r TASK; do
-            if [ -n "$TASK" ]; then
-                TASK_NAME=$(echo "$TASK" | grep -o '"name":"[^"]*"' | sed 's/"name":"\([^"]*\)"/\1/')
-                TASK_STATUS=$(echo "$TASK" | grep -o '"status":"[^"]*"' | sed 's/"status":"\([^"]*\)"/\1/')
-                START_TIME=$(echo "$TASK" | grep -o '"startTime":"[^"]*"' | sed 's/"startTime":"\([^"]*\)"/\1/')
-                END_TIME=$(echo "$TASK" | grep -o '"endTime":"[^"]*"' | sed 's/"endTime":"\([^"]*\)"/\1/')
+    # Find our session in the entries
+    session = None
+    if 'entries' in data:
+        for entry in data['entries']:
+            if 'content' in entry and entry['content'].get('id') == '$SESSION_ID':
+                session = entry['content']
+                break
 
-                DURATION="N/A"
-                if [ -n "$START_TIME" ] && [ -n "$END_TIME" ]; then
-                    DURATION="Completed"
-                elif [ -n "$START_TIME" ]; then
-                    DURATION="In progress"
-                fi
+    if session:
+        for task in session.get('tasks', []):
+            name = task.get('caption', 'Unknown')
+            status = task.get('status', '')
+            start_time = task.get('startTime', '')
+            end_time = task.get('endTime', '')
 
-                echo "| $TASK_NAME | $TASK_STATUS | $DURATION |" >> $REPORT_FILE
-                echo -e "| $TASK_NAME | $TASK_STATUS | $DURATION |"
-            fi
-        done < <(echo "$TASKS_BLOCK" | sed 's/},{/}\n{/g')
-    else
-        echo "No detailed task information available" >> $REPORT_FILE
-        echo -e "${RED}No detailed task information available${NC}"
-    fi
+            duration = 'N/A'
+            if start_time and end_time:
+                duration = 'Completed'
+            elif start_time:
+                duration = 'In progress'
+
+            print(f'| {name} | {status} | {duration} |')
+except Exception as e:
+    print('| Error processing tasks | N/A | N/A |')
+")
+
+    echo "$TASK_SUMMARY" >> $REPORT_FILE
+    echo -e "$TASK_SUMMARY"
 
     return 0
 }

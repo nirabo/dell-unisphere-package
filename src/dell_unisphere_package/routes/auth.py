@@ -4,9 +4,10 @@ This module defines the API endpoints for authentication and user management.
 """
 
 import uuid
-from fastapi import APIRouter, Request, Response, Depends, HTTPException
 
-from ..controllers.auth import get_current_user, format_response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+
+from ..controllers.auth import format_response, get_current_user
 from ..models.storage import sessions, users
 from ..schemas.base import LoginSessionInfo, User
 

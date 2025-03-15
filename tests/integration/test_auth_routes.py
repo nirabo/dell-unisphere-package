@@ -2,8 +2,9 @@
 Integration tests for authentication routes.
 """
 
-import pytest
 import base64
+
+import pytest
 
 
 @pytest.mark.integration

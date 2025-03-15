@@ -46,11 +46,18 @@ We have made significant progress in implementing and fixing tests for the Dell 
    - Updated cookie handling in tests to follow best practices
    - Eliminated deprecation warnings
 
+4. **Implemented Upgrade Progress Testing**:
+   - Added tests for upgrade session creation, pausing, resuming, and progress tracking
+   - Implemented a mock for BackgroundTasks to avoid asyncio issues in tests
+   - Created fixtures to properly handle CSRF tokens for upgrade operations
+   - Ensured proper task status transitions during upgrade operations
+
 ### Next Steps
 
-1. **Complete Upgrade Workflow Tests**: The upgrade.py module currently has only 27% test coverage
+1. **Complete Upgrade Workflow Tests**: ✅ Implemented core upgrade tests with proper mocking for async operations
 2. **Implement File Upload Tests**: Add tests for the file upload functionality
 3. **Add More Error Handling Tests**: Improve coverage of error scenarios
+4. **Enhance Upgrade Eligibility Tests**: Implement tests for the verifyUpgradeEligibility endpoint
 
 ## Test Categories
 
@@ -87,10 +94,13 @@ Integration tests verify that API endpoints function correctly, with proper requ
 | IT-08 | Test GET /api/types/candidateSoftwareVersion/instances | Software | ✅ Done |
 | IT-09 | Test POST /api/types/candidateSoftwareVersion/action/prepare | Software | Not Done |
 | IT-10 | Test POST /upload/files/types/candidateSoftwareVersion | Upload | Not Done |
-| IT-11 | Test GET /api/types/upgradeSession/instances | Upgrade | Not Done |
-| IT-12 | Test POST /api/types/upgradeSession/instances | Upgrade | Not Done |
+| IT-17 | Test single-candidate policy - new upload replaces existing | Upload | Not Done |
+| IT-18 | Test single-candidate policy - candidate removal after upgrade | Upload | Not Done |
+| IT-19 | Test single-candidate policy - concurrent upload handling | Upload | Not Done |
+| IT-11 | Test GET /api/types/upgradeSession/instances | Upgrade | ✅ Done |
+| IT-12 | Test POST /api/types/upgradeSession/instances | Upgrade | ✅ Done |
 | IT-13 | Test POST /api/types/upgradeSession/action/verifyUpgradeEligibility | Upgrade | Not Done |
-| IT-14 | Test POST /api/instances/upgradeSession/{id}/action/resume | Upgrade | Not Done |
+| IT-14 | Test POST /api/instances/upgradeSession/{id}/action/resume | Upgrade | ✅ Done |
 | IT-15 | Test CSRF token validation for POST requests | Security | ✅ Done |
 | IT-16 | Test authentication middleware | Security | ✅ Done |
 
@@ -103,7 +113,7 @@ End-to-end tests verify complete workflows that span multiple API endpoints.
 | ET-01 | Test authentication and session management workflow | UC-1, UC-2 | ✅ Done |
 | ET-02 | Test software version retrieval workflow | UC-3, UC-4, UC-5 | ✅ Done |
 | ET-03 | Test complete software upgrade workflow | UC-6 | Not Done |
-| ET-04 | Test software package upload workflow | UC-7 | Not Done |
+| ET-04 | Test software package upload workflow with candidate rotation | UC-7 | Not Done |
 | ET-05 | Test user management workflow | UC-8 | Not Done |
 
 ### 4. Error Handling Tests
@@ -120,6 +130,7 @@ Tests that verify the API correctly handles error conditions and edge cases.
 | EH-06 | Test rate limiting handling | Error | Not Done |
 | EH-07 | Test missing required parameters | Error | Not Done |
 | EH-08 | Test invalid file upload handling | Error | Not Done |
+| EH-09 | Test concurrent upload conflict resolution | Error | Not Done |
 
 ### 5. Security Tests
 
@@ -146,11 +157,11 @@ Tests that verify the API's performance characteristics.
 
 ## Implementation Plan
 
-### Phase 1: Test Environment Setup
+### Phase 1: Test Environment Setup ✅
 
-1. Set up pytest configuration
-2. Create base test fixtures
-3. Implement test utilities and helpers
+1. Set up pytest configuration ✅
+2. Create base test fixtures ✅
+3. Implement test utilities and helpers ✅
 
 ### Phase 2: Unit Tests
 
@@ -180,13 +191,30 @@ Tests that verify the API's performance characteristics.
 
 ## Test Fixtures
 
-We will create the following pytest fixtures to support our tests:
+We have created the following pytest fixtures to support our tests:
 
-1. `app_client`: FastAPI TestClient instance
-2. `auth_headers`: Authentication headers with valid credentials
-3. `csrf_token`: Valid CSRF token for testing protected endpoints
+1. `app_client`: FastAPI TestClient instance ✅
+2. `auth_headers`: Authentication headers with valid credentials ✅
+3. `csrf_token`: Valid CSRF token for testing protected endpoints ✅
 4. `mock_file`: Mock file for testing file uploads
-5. `mock_storage`: Mock in-memory storage for test isolation
+5. `mock_storage`: Mock in-memory storage for test isolation ✅
+6. `patch_background_tasks`: Mock for BackgroundTasks to handle asyncio operations in tests ✅
+
+### Special Testing Considerations
+
+#### Handling Asynchronous Operations in Tests
+
+The Dell Unisphere Mock API uses FastAPI's BackgroundTasks for asynchronous operations, particularly in the upgrade process. This presents challenges in a testing environment where we need to test these operations without running actual asyncio tasks. Our approach includes:
+
+1. **Mocking BackgroundTasks**: We patch the BackgroundTasks.add_task method to intercept calls to asyncio functions.
+
+2. **Direct State Manipulation**: Instead of running actual background tasks, our tests directly manipulate the state of upgrade sessions based on the expected behavior.
+
+3. **Task Status Transitions**: We ensure proper task status transitions (PENDING → IN_PROGRESS → COMPLETED) are tested without requiring actual task execution.
+
+4. **Progress Simulation**: For upgrade progress tests, we simulate progress increases without the need for time delays or actual processing.
+
+This approach allows us to thoroughly test the upgrade workflow without the complications of managing asyncio event loops in a synchronous test environment.
 
 ## Continuous Integration
 

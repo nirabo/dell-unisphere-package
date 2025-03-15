@@ -2,8 +2,9 @@
 End-to-end tests for authentication and session management workflow.
 """
 
-import pytest
 import base64
+
+import pytest
 from fastapi.testclient import TestClient
 
 

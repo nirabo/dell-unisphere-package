@@ -5,21 +5,20 @@ This package contains all the Pydantic models used for data validation and seria
 
 from .base import (
     BasicSystemInfo,
-    User,
-    Role,
     LoginSessionInfo,
-    UpgradeTypeEnum,
-    UpgradeStatusEnum,
-    UpgradeSessionTypeEnum,
+    Role,
     TaskStatusEnum,
     TaskTypeEnum,
+    UpgradeSessionTypeEnum,
+    UpgradeStatusEnum,
+    UpgradeTypeEnum,
+    User,
 )
-
 from .upgrade import (
     CandidateSoftwareVersion,
-    UpgradeTask,
     UpgradeMessage,
     UpgradeSession,
+    UpgradeTask,
 )
 
 __all__ = [

@@ -55,14 +55,14 @@ This document provides a comprehensive overview of the Dell Unisphere REST API, 
     - [UpgradeSessionTypeEnum](#upgradesessiontypeenum)
     - [UpgradeStatusEnum](#upgradestatusenum)
     - [UpgradeTypeEnum](#upgradetypeenum)
-    - [Software Upgrade Session](#software-upgrade-session)
+    - [upgradeSession](#upgradesession)
         - [Embedded resource types](#embedded-resource-types)
         - [Supported operations](#supported-operations)
         - [Attributes](#attributes)
             - [Attributes for upgradeMessage](#attributes-for-upgrademessage)
             - [Attributes for upgradeTask](#attributes-for-upgradetask)
-            - [Query all members of the softwareUpgradeSession collection](#query-all-members-of-the-softwareupgradesession-collection)
-            - [Query a specific softwareUpgradeSession instance](#query-a-specific-softwareupgradesession-instance)
+        - [Query all members of the upgradeSession collection](#query-all-members-of-the-upgradesession-collection)
+        - [Query a specific upgradeSession instance](#query-a-specific-upgradesession-instance)
         - [Create operation](#create-operation)
             - [Arguments for the Create operation](#arguments-for-the-create-operation)
         - [VerifyUpgradeEligibility operation](#verifyupgradeeligibility-operation)
@@ -795,15 +795,15 @@ Current status of the associated upgrade session.
 | 1 | Firmware |
 | 2 | LanguagePack |
 
-## Software Upgrade Session
+## upgradeSession
 
 Information about a storage system upgrade session.
-
-Create an upgrade session to upprade the system software or view existing upprade sessions. The upgrade sessions installs an uporade candidate file ryslem. Download the hast Support website. Use the CLI to upload the upgrade candidate to the system before creating the upgrade session. For information, see theUnisphere CLI User Guide.
+Create or view an upgrade session to upgrade the system software or hardware.
+A hardware upgrade session starts or shows the status of a hardware upgrade.
+A software upgrade session installs an upgrade candidate file that was uploaded to the system. Download the latest upgrade candidate from Dell Online Support website. Use the CLI to upload the upgrade candidate to the system before creating the upgrade session. For information, see the Unlappare CLI User Guide.
 
 The latest software upgrade candidate contains all available hot fixes. If you have applied hot fixes to your system, the hot fixes are included in the latest upgrade candidate.
-
-Note: All system components must be healthy prior to upgrading the system software. If any system components are degraded, the software update will fail
+Note: All system components must be healthy prior to upgrading the system software. If any system components are degraded, the software update will fail.
 
 ### Embedded resource types
 
@@ -852,26 +852,23 @@ A message occurrence. This is also the message object returned in the body of no
 | type | UpgradeSessionTypeEnum | Upgrade session type. |
 | estRemainTime | DateTime[Interval] | Estimated time remaining for the upgrade task. |
 
-#### Query all members of the softwareUpgradeSession collection
+### Query all members of the upgradeSession collection
 
-| Header | Accept: application/json |
-| --- | --- |
-|  | Content - Type: application/json |
-| Method and URI | GET api/types/softwareUpgradeSession/instances |
+| Header | Accept: application/json <br> Content-Type: application/json |
+| :-- | :-- |
+| Method and URI | GET /api/types/upgradeSession/instances |
 | Request body arguments | None |
 | Successful return status | 200 OK |
-| Successful response body | JSON representation of all members of the softwareUpgradeSession collection. |
+| Successful response body | JSON representation of all members of the upgradeSession collection. |
 
-#### Query a specific softwareUpgradeSession instance
+### Query a specific upgradeSession instance
 
-| Header | Accept: application/json |
-| --- | --- |
-|  | Content - Type: application/json |
-| Method and URI | GET /api/instances/softwareUpgradeSession/<id> |
-|  | where <id> is the unique identifier of the softwareUpgradeSession instance to query. |
+| Header | Accept: application/json <br> Content-Type: application/json |
+| :-- | :-- |
+| Method and URI | GET /api/instances/upgradeSession/<id> <br> where <id> is the unique identifier of the upgradeSession instance to query. |
 | Request body arguments | None |
 | Successful return status | 200 OK |
-| Successful response body | JSON representation of a specific softwareUpgradeSession instance. |
+| Successful response body | JSON representation of a specific upgradeSession instance. |
 
 ### Create operation
 
@@ -880,23 +877,23 @@ Start a session to upgrade the system software with an uploaded upgrade candidat
 | Header | Accept: application/json |
 | --- | --- |
 |  | Content - Type: application/json |
-| Method and URI | POST /api/types/softwareUpgradeSession/instances |
+| Method and URI | POST /api/types/upgradeSession/instances |
 | Request body arguments | See the arquments table below. |
 | Successful return status | 201 Created |
 | Successful response body | JSON representation of the <id> attribute |
 
 #### Arguments for the Create operation
 
-| Arqument | In/ | Type | Required? | Description |
-| --- | --- | --- | --- | --- |
-|  | out |  |  |  |
-| candidate | in | candidateSoftwareVersion | Optional | Candidate software to install in the upgrade |
-|  |  |  |  | session, as defined by the |
-|  |  |  |  | candidateSoftwareVersion resource type. |
-| selectedModel | in | SPModelNameEnum | Optional |  |
-| pauseBeforeReboot | in | Boolean | Optional | Flag to tell that session should stop after the |
-|  |  |  |  | "preinstall" tasks and before first SP reboot. |
-| id | out | softwareUpgradeSession | N/A | The new upgrade session. |
+Arguments for the Create operation
+
+| Argument | $\mathrm{In} /$ <br> out | Type | Required? | Description |
+| :-- | :-- | :-- | :-- | :-- |
+| candidate | in | candidateSoftwareVersion | Optional | Candidate software is install in the upgrade <br> session, as defined by the <br> candidateSoftwareVersion resource type. |
+| selectedModel | in | SPModelNameEnum | Optional | Storage processor model to upgrade to in <br> the online or offline hardware upgrade <br> procedure. |
+| pauseBefore/Refocist | in | Boolean | Optional | (optional) Flag to tell that session should <br> stop after the "preinstall" tasks and before <br> first SP refocist. |
+| pauseBetween/Refocist | in | Boolean | Optional | (optional) Flag to tell that session should <br> stop after the first SP refocist. |
+| offline | in | Boolean | Optional | flag to run a disruptive storage processor <br> upgrade. Offline SP upgrade is faster but all <br> data will be unavailable during the <br> procedure. |
+| id | not | upgradeSession | N/A | The new upgrade session. |
 
 ### VerifyUpgradeEligibility operation
 
@@ -906,7 +903,7 @@ Validate that the system is in a healthy state. This is required for an upgrade 
 | --- | --- |
 |  | Content - Type: application/json |
 | Method and URI | POST |
-|  | /api/types/softwareUpgradeSession/action/verifyUpgradeEligibility |
+|  | /api/types/upgradeSession/action/verifyUpgradeEligibility |
 | Request body arguments | See the arguments table below. |
 | Successful return status | 200 OK, 202 Accepted (async response) |
 | Successful response body | JSON representation of the returned attributes. |
@@ -928,7 +925,7 @@ Resume a session that is currently in paused, failed, or failed_lock state.
 |  | Content - Type: application/json |
 | Method and URI POST | /api/instances/softwareUpgradeSession/<id>/action/resume |
 |  | where <id> is the unique identifier of the softwareUpgradeSession instance. |
-| Request body arguments None |  |
+| Request body arguments | None |
 | Successful return status | 204 No Content |
 | Successful response body | No body content. |
 
