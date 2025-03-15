@@ -141,10 +141,22 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
     """
     if session_id not in upgrade_sessions:
         logger.error(f"Session {session_id} not found during task execution")
-        return
+        return False
 
     session = upgrade_sessions[session_id]
-    session["tasks"][task_index]
+    task = session["tasks"][task_index]
+
+    # Set task to IN_PROGRESS immediately
+    task["status"] = TaskStatusEnum.IN_PROGRESS
+
+    # Add a message about starting the task
+    session["messages"].append(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "message": f"Starting task: {task['caption']}",
+            "severity": 0,
+        }
+    )
 
     # Simulate task execution with progress updates
     increment_count = 10  # Number of progress updates
@@ -154,14 +166,14 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
             logger.info(
                 f"Task {task_index+1} stopped: simulation for session {session_id} was stopped"
             )
-            return
+            return False
 
         # Check if we should pause
         if session["status"] == UpgradeStatusEnum.PAUSED:
             logger.info(f"Task {task_index+1} paused: session {session_id} is paused")
             while session["status"] == UpgradeStatusEnum.PAUSED:
                 if session_id not in active_simulations:
-                    return
+                    return False
                 await asyncio.sleep(0.1)
             logger.info(f"Task {task_index+1} resumed: session {session_id} resumed")
 
@@ -182,6 +194,17 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
             raise
 
     # Task completed successfully
+    task["status"] = TaskStatusEnum.COMPLETED
+
+    # Add a message about task completion
+    session["messages"].append(
+        {
+            "timestamp": datetime.now().isoformat(),
+            "message": f"Completed task: {task['caption']}",
+            "severity": 0,
+        }
+    )
+
     logger.info(f"Task {task_index+1} completed successfully")
     return True
 
@@ -196,6 +219,9 @@ async def process_upgrade_session(session_id: str):
 
     session = upgrade_sessions[session_id]
 
+    # Initialize list to track asyncio tasks
+    tasks = []
+
     # Check if session is paused and wait for resume
     if session["status"] == UpgradeStatusEnum.PAUSED:
         logger.info(f"Upgrade session {session_id} is paused, waiting for resume")
@@ -205,21 +231,17 @@ async def process_upgrade_session(session_id: str):
             if session_id not in upgrade_sessions:
                 return
 
-    # Set session to IN_PROGRESS if not already
-    if session["status"] != UpgradeStatusEnum.IN_PROGRESS:
-        session["status"] = UpgradeStatusEnum.IN_PROGRESS
-        logger.info(f"Upgrade session {session_id} is now in progress")
+    # Always ensure the session is in IN_PROGRESS state
+    session["status"] = UpgradeStatusEnum.IN_PROGRESS
+    logger.info(f"Upgrade session {session_id} is now in progress")
 
-    # Check if session is in NOT_STARTED state and transition to IN_PROGRESS
-    if session["status"] == UpgradeStatusEnum.NOT_STARTED:
-        session["status"] = UpgradeStatusEnum.IN_PROGRESS
+    # Make sure startTime is set
+    if "startTime" not in session:
         session["startTime"] = datetime.now().isoformat()
+
+    # Initialize messages array if not present
+    if "messages" not in session:
         session["messages"] = []
-    elif session["status"] == UpgradeStatusEnum.PAUSED:
-        # Keep the session paused
-        pass
-    else:
-        session["status"] = UpgradeStatusEnum.IN_PROGRESS
 
     # Verify candidate exists
     candidate_id = session.get("candidate")
@@ -238,7 +260,6 @@ async def process_upgrade_session(session_id: str):
     # Process each task in sequence
     total_tasks = len(session["tasks"])
     completed_tasks = 0
-    tasks = []
 
     try:
         # Process each task
@@ -247,6 +268,21 @@ async def process_upgrade_session(session_id: str):
             if task["status"] == TaskStatusEnum.COMPLETED:
                 completed_tasks += 1
                 continue
+
+            # Set task to IN_PROGRESS immediately
+            task["status"] = TaskStatusEnum.IN_PROGRESS
+
+            # Add a message about starting the task
+            session["messages"].append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "message": f"Starting task: {task['caption']}",
+                    "severity": 0,
+                }
+            )
+
+            # Update session percentage based on tasks completed so far
+            session["percentComplete"] = int((completed_tasks / total_tasks) * 100)
 
             # Check if session is paused
             if session["status"] == UpgradeStatusEnum.PAUSED:
@@ -258,26 +294,15 @@ async def process_upgrade_session(session_id: str):
                     if session_id not in upgrade_sessions:
                         return
 
-            # Mark task as in progress
-            logger.info(
-                f"Transitioning task {i+1} from {task['status']} to {TaskStatusEnum.IN_PROGRESS}"
-            )
-            task["status"] = TaskStatusEnum.IN_PROGRESS
+            # Set the task start time
             task["startTime"] = datetime.now().isoformat()
 
-            # Add a message about task start
-            session["messages"].append(
-                {
-                    "timestamp": datetime.now().isoformat(),
-                    "message": f"Starting task: {task['caption']}",
-                    "severity": 0,
-                }
-            )
-
             # Calculate task duration based on estimated time and speed factor
-            duration = (
-                parse_time_to_seconds(task["estimatedTime"]) / SIMULATION_SPEED_FACTOR
+            # Handle both estRemainTime (from create_realistic_upgrade_tasks) and estimatedTime (from tests)
+            est_time = task.get(
+                "estimatedTime", task.get("estRemainTime", "00:01:00.000")
             )
+            duration = parse_time_to_seconds(est_time) / SIMULATION_SPEED_FACTOR
 
             # Log task start
             logger.info(f"Starting task {i+1}/{total_tasks}: {task['caption']}")

@@ -215,6 +215,13 @@ Cookie: mod_sec_emc={cookie_value}
 
    **Rationale**: This validation maintains the integrity of the upgrade process by preventing attempts to resume non-existent or already completed/failed sessions, which could lead to unpredictable system behavior.
 
+27a. The API must enforce that only ONE active upgrade session can exist at any time:
+   - When a new upgrade session is requested while another is in progress, the API must reject the request with an appropriate error message
+   - Only sessions with status COMPLETED or FAILED are considered inactive
+   - Sessions with status NOT_STARTED, IN_PROGRESS, or PAUSED are considered active
+
+   **Rationale**: This requirement ensures system stability during the upgrade process. Multiple concurrent upgrade sessions could lead to conflicts, resource contention, and unpredictable system behavior. The restriction mirrors the behavior of the actual Dell Unisphere system.
+
 #### File Upload
 
 28. The API must implement a file upload endpoint for candidate software versions:

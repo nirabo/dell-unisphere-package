@@ -139,6 +139,28 @@ async def create_upgrade_session(
     current_user=Depends(get_current_user),
 ):
     """Create a new upgrade session."""
+    # Check if there's already an active upgrade session
+    active_session_exists = False
+    active_session_id = None
+
+    for session_id, session in upgrade_sessions.items():
+        status = session.get("status")
+        # Consider sessions that are not COMPLETED or FAILED as active
+        if status not in [UpgradeStatusEnum.COMPLETED, UpgradeStatusEnum.FAILED]:
+            active_session_exists = True
+            active_session_id = session_id
+            break
+
+    if active_session_exists:
+        raise HTTPException(
+            status_code=409,  # Conflict
+            detail=(
+                f"An active upgrade session already exists (ID: {active_session_id}).",
+                " Only one active upgrade session can exist at a time. ",
+                " Wait for the current session to complete or fail before creating a new one.",
+            ),
+        )
+
     # Extract candidate ID from request body if provided
     try:
         body = await request.json()
@@ -199,13 +221,19 @@ async def create_upgrade_session(
         "type": UpgradeSessionTypeEnum.UPGRADE,
         "candidate": candidate_id,
         "caption": f"Upgrade to {candidate_version}",
-        "status": UpgradeStatusEnum.NOT_STARTED,  # Use NOT_STARTED as per documentation
+        "status": UpgradeStatusEnum.IN_PROGRESS,  # Set to IN_PROGRESS immediately to fix the progress issue
+        "startTime": datetime.now().isoformat(),  # Add startTime immediately
         "messages": messages,
         "creationTime": datetime.now().isoformat(),
         "elapsedTime": "PT0M",
         "percentComplete": 0,
         "tasks": tasks,
     }
+
+    # Log the creation of a new upgrade session
+    logger.info(
+        f"Created new upgrade session {session_id} for candidate {candidate_id}"
+    )
 
     # Start upgrade simulation in background
     background_tasks.add_task(start_upgrade_simulation, session_id)
