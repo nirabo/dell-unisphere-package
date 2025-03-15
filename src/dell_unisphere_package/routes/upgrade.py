@@ -89,7 +89,7 @@ def get_upgrade_sessions(
     return format_response(sessions_list, request, instance_type="upgradeSession")
 
 
-@router.post("/api/types/upgradeSession/action/verifyEligibility")
+@router.post("/api/types/upgradeSession/action/verifyUpgradeEligibility")
 def verify_upgrade_eligibility(
     request: Request, current_user=Depends(get_current_user)
 ):

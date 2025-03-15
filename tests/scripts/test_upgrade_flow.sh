@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Test script for Dell EMC Unisphere Mock API
+# This script tests both general API endpoints and the complete upgrade flow
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -20,7 +23,7 @@ UPGRADE_FILE="$REPORT_DIR/test_upgrade.bin"
 mkdir -p "$REPORT_DIR"
 
 # Initialize report file
-echo "# Dell Unisphere Mock API - Upgrade Flow Test Report" > $REPORT_FILE
+echo "# Dell Unisphere Mock API - Comprehensive Test Report" > $REPORT_FILE
 echo "Generated on: $(date)" >> $REPORT_FILE
 echo "" >> $REPORT_FILE
 
@@ -42,6 +45,86 @@ check_api() {
         echo -e "${RED}API is not running at $HOST${NC}"
         echo "API is not running at $HOST" >> $REPORT_FILE
         return 1
+    fi
+}
+
+# Function to test an endpoint
+test_endpoint() {
+    local method=$1
+    local endpoint=$2
+    local auth=$3
+    local description=$4
+    local extra_headers=$5
+    local data=$6
+
+    print_header "$description"
+
+    # Build the curl command
+    cmd="curl -s -k -L -X $method \"$HOST$endpoint\""
+
+    # Add authentication if needed
+    if [ "$auth" = "true" ]; then
+        cmd="$cmd -u \"$USERNAME:$PASSWORD\" -c $COOKIE_JAR"
+    fi
+
+    # Add the EMC REST client header
+    cmd="$cmd -H \"X-EMC-REST-CLIENT: true\""
+
+    # Add extra headers if provided
+    if [ -n "$extra_headers" ]; then
+        cmd="$cmd $extra_headers"
+    fi
+
+    # Add data if provided
+    if [ -n "$data" ]; then
+        cmd="$cmd -d '$data'"
+    fi
+
+    # Execute the command and capture output
+    echo "Executing: $cmd"
+    echo "### Request" >> $REPORT_FILE
+    echo '```bash' >> $REPORT_FILE
+    echo "$cmd" >> $REPORT_FILE
+    echo '```' >> $REPORT_FILE
+
+    # For login endpoint, capture headers to extract CSRF token
+    if [[ "$endpoint" == "/api/types/loginSessionInfo/instances" ]]; then
+        # Capture headers directly into a variable without creating files
+        headers_and_response=$(eval "$cmd -i")
+        # Extract headers and response
+        headers=$(echo "$headers_and_response" | awk 'BEGIN{RS="\r\n\r\n"} NR==1')
+        response=$(echo "$headers_and_response" | awk 'BEGIN{RS="\r\n\r\n"} NR==2')
+        # Store CSRF token in a global variable for later use
+        CSRF_TOKEN=$(echo "$headers" | grep -i "EMC-CSRF-TOKEN:" | cut -d' ' -f2 | tr -d '\r\n')
+        if [ -n "$CSRF_TOKEN" ]; then
+            echo -e "${GREEN}Got CSRF token: $CSRF_TOKEN${NC}"
+            echo "Got CSRF token: $CSRF_TOKEN" >> $REPORT_FILE
+        fi
+    else
+        # For other endpoints, just capture the response
+        response=$(eval "$cmd")
+    fi
+
+    # Format the output with Python's json.tool
+    if [ -n "$response" ]; then
+        formatted_response=$(echo "$response" | python3 -m json.tool 2>/dev/null)
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Received valid JSON response${NC}"
+            echo "### Response" >> $REPORT_FILE
+            echo '```json' >> $REPORT_FILE
+            echo "${formatted_response}" >> $REPORT_FILE
+            echo '```' >> $REPORT_FILE
+        else
+            echo -e "${YELLOW}Received non-JSON response${NC}"
+            echo "### Response" >> $REPORT_FILE
+            echo '```' >> $REPORT_FILE
+            echo "${response}" >> $REPORT_FILE
+            echo '```' >> $REPORT_FILE
+        fi
+    else
+        echo -e "${RED}Empty response received${NC}"
+        echo "### Response" >> $REPORT_FILE
+        echo "Empty response received" >> $REPORT_FILE
     fi
 }
 
@@ -306,7 +389,7 @@ except Exception as e:
         fi
 
         # Get current session status
-        GET_STATUS_CMD="curl -s -k -L -X GET \"$HOST/api/instances/upgradeSession/$SESSION_ID?fields=id,status,percentComplete,tasks,messages\" \
+        GET_STATUS_CMD="curl -s -k -L -X GET \"$HOST/api/instances/upgradeSession/$SESSION_ID?fields=id,status,percentComplete,tasks\" \
             -u \"$USERNAME:$PASSWORD\" \
             -b $COOKIE_JAR \
             -H \"X-EMC-REST-CLIENT: true\" \
@@ -440,7 +523,7 @@ for task in tasks:
     echo -e "\n${YELLOW}Step 4: Getting final session details${NC}"
     echo "### Step 4: Getting final session details" >> $REPORT_FILE
 
-    FINAL_STATUS_CMD="curl -s -k -L -X GET \"$HOST/api/instances/upgradeSession/$SESSION_ID?fields=id,status,percentComplete,tasks,messages\" \
+    FINAL_STATUS_CMD="curl -s -k -L -X GET \"$HOST/api/instances/upgradeSession/$SESSION_ID?fields=id,status,percentComplete,tasks\" \
         -u \"$USERNAME:$PASSWORD\" \
         -b $COOKIE_JAR \
         -H \"X-EMC-REST-CLIENT: true\" \
@@ -503,7 +586,62 @@ cleanup() {
     rm -f "$COOKIE_JAR"
 }
 
+# Function to run general API tests
+run_api_tests() {
+    print_header "Running General API Tests"
+    echo "This section tests various API endpoints to ensure they are functioning correctly" >> $REPORT_FILE
+
+    # Test 1: Get basic system info (no auth required)
+    test_endpoint "GET" "/api/types/basicSystemInfo/instances" "false" "Getting Basic System Info"
+
+    # Test 2: Authenticate and get login session info
+    test_endpoint "GET" "/api/types/loginSessionInfo/instances" "true" "Getting Login Session Info"
+
+    # Test 3: Get auth token
+    test_endpoint "POST" "/api/auth" "true" "Getting Auth Token"
+
+    # Get the CSRF token for subsequent requests
+    CSRF_TOKEN=$(get_csrf_token)
+    if [ -n "$CSRF_TOKEN" ]; then
+        echo -e "${GREEN}Got CSRF token: $CSRF_TOKEN${NC}"
+        CSRF_HEADER="-H \"EMC-CSRF-TOKEN: $CSRF_TOKEN\""
+    else
+        echo -e "${RED}Failed to get CSRF token${NC}"
+        CSRF_HEADER=""
+    fi
+
+    # Test 4: Get user info
+    test_endpoint "GET" "/api/types/user/instances" "true" "Getting User Info"
+
+    # Test 5: Get installed software versions
+    test_endpoint "GET" "/api/types/installedSoftwareVersion/instances" "true" "Getting Installed Software Versions"
+
+    # Test 6: Get specific installed software version
+    test_endpoint "GET" "/api/instances/installedSoftwareVersion/0" "true" "Getting Specific Installed Software Version"
+
+    # Test 7: Get candidate software versions
+    test_endpoint "GET" "/api/types/candidateSoftwareVersion/instances" "true" "Getting Candidate Software Versions"
+
+    # Test 8: Get upgrade sessions
+    test_endpoint "GET" "/api/types/upgradeSession/instances" "true" "Getting Upgrade Sessions"
+
+    # Test 9: Get upgrade sessions with fields
+    test_endpoint "GET" "/api/types/upgradeSession/instances?fields=status,caption,percentComplete,tasks" "true" "Getting Upgrade Sessions with Fields"
+
+    # Test 10: Verify upgrade eligibility
+    test_endpoint "POST" "/api/types/upgradeSession/action/verifyUpgradeEligibility" "true" "Verifying Upgrade Eligibility" "$CSRF_HEADER"
+}
+
 # Main execution
 check_api || exit 1
+
+# Run general API tests first
+run_api_tests
+
+# Then run the complete upgrade flow test
 test_upgrade_flow
+
+# Cleanup at the end
 cleanup
+
+echo -e "\n${GREEN}All tests completed. Results saved in $REPORT_FILE${NC}"

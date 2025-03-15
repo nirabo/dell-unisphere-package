@@ -3,7 +3,7 @@
 This module provides in-memory storage for the API.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict
 
 # In-memory storage
@@ -30,20 +30,7 @@ users = {
 }
 # Initially empty, will be populated when software is uploaded and prepared
 candidate_software_versions: Dict[str, Any] = {}
-upgrade_sessions = {
-    "Upgrade_4.3.0.1499782821": {
-        "id": "Upgrade_4.3.0.1499782821",
-        "type": 0,  # UPGRADE
-        "candidate": "candidate_default",
-        "caption": "Upgrade_4.3.0.1499782821",
-        "status": 2,  # COMPLETED
-        "messages": [],
-        "creationTime": (datetime.now() - timedelta(days=30)).isoformat(),
-        "elapsedTime": "PT2H30M",
-        "percentComplete": 100,
-        "tasks": [],
-    }
-}
+upgrade_sessions: Dict[str, Any] = {}
 uploaded_files: Dict[str, Any] = {}
 
 # Installed software versions

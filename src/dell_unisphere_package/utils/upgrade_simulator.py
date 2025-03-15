@@ -15,7 +15,7 @@ from ..schemas.base import TaskStatusEnum, TaskTypeEnum, UpgradeStatusEnum
 logger = logging.getLogger(__name__)
 
 # Configuration for time acceleration
-SIMULATION_SPEED_FACTOR = 60  # 200x faster than real-time for testing
+SIMULATION_SPEED_FACTOR = 120  # 120 faster than real-time for testing
 
 # Store active simulation tasks
 active_simulations = {}
@@ -405,19 +405,15 @@ async def process_upgrade_session(session_id: str):
 
                 task_caption = task.caption
 
-                # Update the task in the session's task list with startTime
-                # We need to convert the Pydantic model to a dict and add the startTime
-                if isinstance(session["tasks"][i], dict):
-                    session["tasks"][i]["startTime"] = datetime.now().isoformat()
-                else:
-                    # Convert the task to a dictionary and add startTime
+                # Update the task in the session's task list
+                # We need to convert the Pydantic model to a dict
+                if not isinstance(session["tasks"][i], dict):
+                    # Convert the task to a dictionary
                     task_dict = task.model_dump()
-                    task_dict["startTime"] = datetime.now().isoformat()
                     # Replace the task in the session's task list
                     session["tasks"][i] = task_dict
             else:
-                # It's a dictionary
-                task["startTime"] = datetime.now().isoformat()
+                # It's a dictionary - no need to add startTime to match the original schema
 
                 # Get estimated time from dictionary
                 est_time = task.get(
@@ -453,17 +449,14 @@ async def process_upgrade_session(session_id: str):
                     # Update the task in the session's task list
                     if isinstance(session["tasks"][i], dict):
                         session["tasks"][i]["status"] = TaskStatusEnum.COMPLETED
-                        session["tasks"][i]["endTime"] = datetime.now().isoformat()
                     else:
                         # Convert the task to a dictionary, update it, and replace it in the list
                         task_dict = task.model_dump()
                         task_dict["status"] = TaskStatusEnum.COMPLETED
-                        task_dict["endTime"] = datetime.now().isoformat()
                         session["tasks"][i] = task_dict
                 else:
                     # It's a dictionary
                     task["status"] = TaskStatusEnum.COMPLETED
-                    task["endTime"] = datetime.now().isoformat()
                     task_caption = task["caption"]
 
                 completed_tasks += 1
