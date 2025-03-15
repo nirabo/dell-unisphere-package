@@ -25,7 +25,6 @@ from ..schemas.base import (
 from ..schemas.upgrade import (
     CandidateSoftwareVersion,
     UpgradeMessage,
-    UpgradeSession,
     UpgradeTask,
 )
 from ..utils.upgrade_simulator import (
@@ -67,26 +66,25 @@ def get_upgrade_sessions(
         selected_fields = fields.split(",")
 
     sessions_list = []
-    for session_data in upgrade_sessions.values():
-        # Convert ISO format string to datetime if needed
-        if isinstance(session_data["creationTime"], str):
-            session_data["creationTime"] = datetime.fromisoformat(
-                session_data["creationTime"]
-            )
+    for session_id, session_data in upgrade_sessions.items():
+        # Create a copy of the session data to avoid modifying the original
+        session_copy = session_data.copy()
 
-        # Create UpgradeSession object
-        session = UpgradeSession(**session_data)
+        # Remove messages unless explicitly requested
+        if "messages" in session_copy and (
+            not selected_fields or "messages" not in selected_fields
+        ):
+            session_copy["messages"] = []
 
         # Filter fields if requested
         if selected_fields:
-            session_dict = {
-                field: getattr(session, field)
-                for field in selected_fields
-                if hasattr(session, field)
-            }
-            sessions_list.append(session_dict)
+            filtered_data = {}
+            for field in selected_fields:
+                if field in session_copy:
+                    filtered_data[field] = session_copy[field]
+            sessions_list.append(filtered_data)
         else:
-            sessions_list.append(session)
+            sessions_list.append(session_copy)
 
     return format_response(sessions_list, request, instance_type="upgradeSession")
 
@@ -256,16 +254,29 @@ def get_upgrade_session(
     # Get the session data
     session_data = upgrade_sessions[session_id]
 
+    # Log the session data for debugging
+    logger.debug(f"Session data for {session_id}: {session_data}")
+
+    # Create a dictionary for the response
+    response_data = {}
+
     # If fields parameter is provided, filter the response
     if fields:
         requested_fields = fields.split(",")
-        filtered_data = {}
         for field in requested_fields:
             if field in session_data:
-                filtered_data[field] = session_data[field]
-        return filtered_data
+                response_data[field] = session_data[field]
+    else:
+        # Use all fields from session_data except messages by default
+        response_data = session_data.copy()
+        # Remove messages unless explicitly requested
+        if "messages" in response_data and fields is None:
+            response_data["messages"] = []
 
-    return session_data
+    # Format the response according to Dell Unisphere API standards
+    return format_response(
+        response_data, request, instance_type="upgradeSession", instance_id=session_id
+    )
 
 
 @router.post("/api/instances/upgradeSession/{session_id}/action/resume")

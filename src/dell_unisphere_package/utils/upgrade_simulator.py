@@ -144,6 +144,14 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
         return False
 
     session = upgrade_sessions[session_id]
+
+    # Check if task index is valid
+    if task_index >= len(session["tasks"]):
+        logger.error(
+            f"Task index {task_index} is out of range for session {session_id}"
+        )
+        return False
+
     task = session["tasks"][task_index]
 
     # Set task to IN_PROGRESS immediately
@@ -161,6 +169,21 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
     # Simulate task execution with progress updates
     increment_count = 10  # Number of progress updates
     for j in range(increment_count):
+        # Check if session still exists
+        if session_id not in upgrade_sessions:
+            logger.info(f"Session {session_id} no longer exists during task execution")
+            return False
+
+        # Refresh session reference as it might have been updated
+        session = upgrade_sessions[session_id]
+
+        # Check if task index is still valid
+        if task_index >= len(session["tasks"]):
+            logger.info(
+                f"Task index {task_index} is now out of range for session {session_id}"
+            )
+            return False
+
         # Check if we should stop
         if session_id not in active_simulations:
             logger.info(
@@ -193,6 +216,24 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
             logger.info(f"Task {task_index+1} for session {session_id} was cancelled")
             raise
 
+    # Check if session still exists before updating task status
+    if session_id not in upgrade_sessions:
+        logger.info(f"Session {session_id} no longer exists, cannot update task status")
+        return False
+
+    # Refresh session reference
+    session = upgrade_sessions[session_id]
+
+    # Check if task index is still valid
+    if task_index >= len(session["tasks"]):
+        logger.info(
+            f"Task index {task_index} is now out of range, cannot update task status"
+        )
+        return False
+
+    # Get the task again as it might have been updated
+    task = session["tasks"][task_index]
+
     # Task completed successfully
     task["status"] = TaskStatusEnum.COMPLETED
 
@@ -211,13 +252,22 @@ async def simulate_task_execution(task_duration, session_id, task_index, total_t
 
 async def process_upgrade_session(session_id: str):
     """Process an upgrade session in the background."""
+    # Add print statement for immediate console output
+    print(f"DEBUG: process_upgrade_session started for {session_id}")
+
+    # Use both logger.info and logger.warning to see if one works
     logger.info(f"Starting upgrade simulation for session {session_id}")
+    logger.warning(
+        f"Starting upgrade simulation for session {session_id} (WARNING level)"
+    )
 
     if session_id not in upgrade_sessions:
         logger.error(f"Session {session_id} not found")
+        print(f"DEBUG: Session {session_id} not found")
         return
 
     session = upgrade_sessions[session_id]
+    print(f"DEBUG: Found session {session_id} with status {session.get('status')}")
 
     # Initialize list to track asyncio tasks
     tasks = []
@@ -264,22 +314,68 @@ async def process_upgrade_session(session_id: str):
     try:
         # Process each task
         for i, task in enumerate(session["tasks"]):
-            # Skip already completed tasks
-            if task["status"] == TaskStatusEnum.COMPLETED:
-                completed_tasks += 1
-                continue
+            # Check if session still exists (might have been deleted or stopped)
+            if session_id not in upgrade_sessions:
+                logger.info(
+                    f"Session {session_id} no longer exists, stopping simulation"
+                )
+                return
 
-            # Set task to IN_PROGRESS immediately
-            task["status"] = TaskStatusEnum.IN_PROGRESS
+            # Get the current session state (it might have been updated)
+            session = upgrade_sessions[session_id]
 
-            # Add a message about starting the task
-            session["messages"].append(
-                {
-                    "timestamp": datetime.now().isoformat(),
-                    "message": f"Starting task: {task['caption']}",
-                    "severity": 0,
-                }
-            )
+            # Check if session is cancelled or failed
+            if session["status"] in [
+                UpgradeStatusEnum.FAILED,
+                UpgradeStatusEnum.CANCELLED,
+            ]:
+                logger.info(
+                    f"Session {session_id} is in {session['status']} state, stopping simulation"
+                )
+                return
+
+            # Check if tasks array has been modified and this task no longer exists
+            if i >= len(session["tasks"]):
+                logger.info(
+                    f"Task index {i} is out of range for session {session_id}, stopping simulation"
+                )
+                return
+
+            # Check if task is a dictionary or a Pydantic model
+            if hasattr(task, "status"):
+                # It's a Pydantic model, use attribute access
+                if task.status == TaskStatusEnum.COMPLETED:
+                    completed_tasks += 1
+                    continue
+
+                # Set task to IN_PROGRESS immediately
+                task.status = TaskStatusEnum.IN_PROGRESS
+
+                # Add a message about starting the task
+                session["messages"].append(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "message": f"Starting task: {task.caption}",
+                        "severity": 0,
+                    }
+                )
+            else:
+                # It's a dictionary, use dictionary access
+                if task["status"] == TaskStatusEnum.COMPLETED:
+                    completed_tasks += 1
+                    continue
+
+                # Set task to IN_PROGRESS immediately
+                task["status"] = TaskStatusEnum.IN_PROGRESS
+
+                # Add a message about starting the task
+                session["messages"].append(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "message": f"Starting task: {task['caption']}",
+                        "severity": 0,
+                    }
+                )
 
             # Update session percentage based on tasks completed so far
             session["percentComplete"] = int((completed_tasks / total_tasks) * 100)
@@ -294,18 +390,50 @@ async def process_upgrade_session(session_id: str):
                     if session_id not in upgrade_sessions:
                         return
 
-            # Set the task start time
-            task["startTime"] = datetime.now().isoformat()
+            # Handle task properties based on its type
+            if hasattr(task, "status"):
+                # It's a Pydantic model - we need to update the session's task list directly
+                # since we can't modify the Pydantic model
 
-            # Calculate task duration based on estimated time and speed factor
-            # Handle both estRemainTime (from create_realistic_upgrade_tasks) and estimatedTime (from tests)
-            est_time = task.get(
-                "estimatedTime", task.get("estRemainTime", "00:01:00.000")
-            )
+                # Get estimated time from the model
+                if hasattr(task, "estimatedTime"):
+                    est_time = task.estimatedTime
+                elif hasattr(task, "estRemainTime"):
+                    est_time = task.estRemainTime
+                else:
+                    est_time = "00:01:00.000"
+
+                task_caption = task.caption
+
+                # Update the task in the session's task list with startTime
+                # We need to convert the Pydantic model to a dict and add the startTime
+                if isinstance(session["tasks"][i], dict):
+                    session["tasks"][i]["startTime"] = datetime.now().isoformat()
+                else:
+                    # Convert the task to a dictionary and add startTime
+                    task_dict = task.model_dump()
+                    task_dict["startTime"] = datetime.now().isoformat()
+                    # Replace the task in the session's task list
+                    session["tasks"][i] = task_dict
+            else:
+                # It's a dictionary
+                task["startTime"] = datetime.now().isoformat()
+
+                # Get estimated time from dictionary
+                est_time = task.get(
+                    "estimatedTime", task.get("estRemainTime", "00:01:00.000")
+                )
+
+                task_caption = task["caption"]
+
             duration = parse_time_to_seconds(est_time) / SIMULATION_SPEED_FACTOR
 
+            logger.info(
+                f"Task {i+1}/{total_tasks}: {task_caption} duration: {duration} seconds"
+            )
+
             # Log task start
-            logger.info(f"Starting task {i+1}/{total_tasks}: {task['caption']}")
+            logger.info(f"Starting task {i+1}/{total_tasks}: {task_caption}")
 
             # Create a task for this step
             task_obj = asyncio.create_task(
@@ -317,9 +445,27 @@ async def process_upgrade_session(session_id: str):
             try:
                 await task_obj
 
-                # Mark task as completed
-                task["status"] = TaskStatusEnum.COMPLETED
-                task["endTime"] = datetime.now().isoformat()
+                # Mark task as completed based on its type
+                if hasattr(task, "status"):
+                    # It's a Pydantic model - we need to update the session's task list
+                    task_caption = task.caption
+
+                    # Update the task in the session's task list
+                    if isinstance(session["tasks"][i], dict):
+                        session["tasks"][i]["status"] = TaskStatusEnum.COMPLETED
+                        session["tasks"][i]["endTime"] = datetime.now().isoformat()
+                    else:
+                        # Convert the task to a dictionary, update it, and replace it in the list
+                        task_dict = task.model_dump()
+                        task_dict["status"] = TaskStatusEnum.COMPLETED
+                        task_dict["endTime"] = datetime.now().isoformat()
+                        session["tasks"][i] = task_dict
+                else:
+                    # It's a dictionary
+                    task["status"] = TaskStatusEnum.COMPLETED
+                    task["endTime"] = datetime.now().isoformat()
+                    task_caption = task["caption"]
+
                 completed_tasks += 1
 
                 # Update session progress percentage
@@ -329,12 +475,12 @@ async def process_upgrade_session(session_id: str):
                 session["messages"].append(
                     {
                         "timestamp": datetime.now().isoformat(),
-                        "message": f"Completed task: {task['caption']}",
+                        "message": f"Completed task: {task_caption}",
                         "severity": 0,
                     }
                 )
 
-                logger.info(f"Completed task {i+1}/{total_tasks}: {task['caption']}")
+                logger.info(f"Completed task {i+1}/{total_tasks}: {task_caption}")
             except asyncio.CancelledError:
                 logger.info(f"Task {i+1} was cancelled")
                 # Propagate the cancellation
@@ -392,35 +538,62 @@ def start_upgrade_simulation(session_id: str):
 
     # Log that we're starting the simulation
     logger.info(f"Initializing upgrade simulation for session {session_id}")
+    print(f"DEBUG: Initializing upgrade simulation for session {session_id}")
 
-    # Get or create an event loop
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        # No running event loop, create a new one
+    # Use a completely different approach with a dedicated thread for the task
+    import threading
+
+    def run_async_task():
+        print(f"DEBUG: Thread started for session {session_id}")
+        # Create a new event loop for this thread
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    # Create and store the task - ensure we're properly creating a task from the coroutine
-    coroutine = process_upgrade_session(session_id)
-    task = asyncio.ensure_future(coroutine)
-    active_simulations[session_id] = task
-
-    # Add a done callback to handle task completion and cleanup
-    def _on_task_done(completed_task):
         try:
-            # Get the result to handle any exceptions
-            completed_task.result()
-        except Exception as e:
-            logger.error(
-                f"Upgrade simulation for session {session_id} failed: {str(e)}"
+            # Run the coroutine to completion in this thread
+            print(f"DEBUG: About to run process_upgrade_session for {session_id}")
+            result = loop.run_until_complete(process_upgrade_session(session_id))
+            print(
+                f"DEBUG: process_upgrade_session completed for {session_id} with result: {result}"
             )
+            return result
+        except Exception as e:
+            # Check if session was intentionally stopped
+            if session_id not in upgrade_sessions:
+                print(
+                    f"DEBUG: Session {session_id} was stopped, ignoring exception: {str(e)}"
+                )
+                logger.info(f"Upgrade simulation for session {session_id} was stopped")
+            elif session_id in upgrade_sessions and upgrade_sessions[session_id][
+                "status"
+            ] in [UpgradeStatusEnum.FAILED, UpgradeStatusEnum.CANCELLED]:
+                status_str = str(upgrade_sessions[session_id]["status"].value).lower()
+                print(
+                    f"DEBUG: Session {session_id} was already marked as {status_str}, ignoring exception: {str(e)}"
+                )
+                logger.info(
+                    f"Upgrade simulation for session {session_id} was {status_str}"
+                )
+            else:
+                print(
+                    f"DEBUG: Exception in process_upgrade_session for {session_id}: {str(e)}"
+                )
+                logger.error(
+                    f"Upgrade simulation for session {session_id} failed: {str(e)}"
+                )
         finally:
+            loop.close()
+            print(f"DEBUG: Thread for session {session_id} finished")
             # Clean up the task reference
             if session_id in active_simulations:
                 del active_simulations[session_id]
 
-    task.add_done_callback(_on_task_done)
+    # Create a thread for the task
+    thread = threading.Thread(target=run_async_task, daemon=True)
+    thread.start()
+
+    # Store a reference to the thread
+    active_simulations[session_id] = thread
 
     # Set initial session state if not already set
     if session_id in upgrade_sessions:
@@ -439,10 +612,6 @@ def stop_upgrade_simulation(session_id: str):
         logger.warning(f"No active simulation found for session {session_id}")
         return
 
-    # Cancel the task
-    task = active_simulations[session_id]
-    task.cancel()
-
     # Mark the session as failed if it exists
     if session_id in upgrade_sessions:
         upgrade_sessions[session_id]["status"] = UpgradeStatusEnum.FAILED
@@ -454,7 +623,13 @@ def stop_upgrade_simulation(session_id: str):
             }
         )
 
-    # Remove from active simulations (the callback will also do this, but we do it here for immediate effect)
+    # For Thread objects, we can't cancel them directly, but we can mark the session as failed
+    # which will cause the thread to exit gracefully when it checks the session status
+    logger.info(
+        f"Task {session_id} stopped: simulation for session {session_id} was stopped"
+    )
+
+    # Remove from active simulations
     if session_id in active_simulations:
         del active_simulations[session_id]
 

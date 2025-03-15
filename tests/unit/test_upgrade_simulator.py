@@ -248,7 +248,9 @@ async def test_start_stop_upgrade_simulation(
     # Start simulation
     start_upgrade_simulation(session_id)
     assert session_id in active_simulations
-    assert not active_simulations[session_id].done()
+    assert active_simulations[
+        session_id
+    ].is_alive()  # Thread objects use is_alive() instead of done()
 
     # Give the task a moment to start
     await asyncio.sleep(0.1)

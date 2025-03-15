@@ -55,7 +55,15 @@ def format_response(
     """Format the API response according to Dell Unisphere API standards."""
     from datetime import datetime
 
+    from pydantic import BaseModel
+
     current_time = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    # Convert Pydantic models to dictionaries
+    def convert_model_to_dict(item):
+        if isinstance(item, BaseModel):
+            return item.model_dump()
+        return item
 
     if isinstance(data, list):
         # Collection response
@@ -66,12 +74,12 @@ def format_response(
 
         entries = []
         for i, item in enumerate(data):
-            item_id = getattr(item, "id", f"{i}")
+            item_id = getattr(item, "id", f"{i}") if hasattr(item, "id") else f"{i}"
             instance_base_url = f"{request.url.scheme}://{request.url.netloc}{base_url}/instances/{instance_type}"
 
             entry = {
                 "@base": instance_base_url,
-                "content": item,
+                "content": convert_model_to_dict(item),
                 "links": [{"rel": "self", "href": f"/{item_id}"}],
                 "updated": current_time,
             }
@@ -91,7 +99,7 @@ def format_response(
         if instance_id:
             response = {
                 "@base": instance_base_url,
-                "content": data,
+                "content": convert_model_to_dict(data),
                 "links": [{"rel": "self", "href": f"/{instance_id}"}],
                 "updated": current_time,
             }

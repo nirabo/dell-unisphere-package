@@ -321,9 +321,20 @@ import sys, json
 try:
     data = json.load(sys.stdin)
 
+    # Extract content from the Dell Unisphere API response structure
+    if 'content' in data:
+        # We're dealing with a single session response
+        content = data['content']
+    elif 'entries' in data and len(data['entries']) > 0 and 'content' in data['entries'][0]:
+        # We're dealing with a list response, get the first entry's content
+        content = data['entries'][0]['content']
+    else:
+        # Fallback to the original data
+        content = data
+
     # Get session info
-    status = data.get('status', 0)
-    progress = data.get('percentComplete', 0)
+    status = content.get('status', 0)
+    progress = content.get('percentComplete', 0)
 
     # Status mapping
     status_map = {0: 'PENDING', 1: 'IN_PROGRESS', 2: 'COMPLETED', 3: 'FAILED', 4: 'PAUSED'}
@@ -332,7 +343,7 @@ try:
     # Get task statuses
     task_statuses = []
     task_details = []
-    for task in data.get('tasks', []):
+    for task in content.get('tasks', []):
         task_caption = task.get('caption', 'Unknown')
         task_status = task.get('status', 0)
         task_status_text = status_map.get(task_status, task_status)
