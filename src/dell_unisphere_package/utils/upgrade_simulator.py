@@ -496,10 +496,26 @@ async def process_upgrade_session(session_id: str):
                 datetime.now() - datetime.fromisoformat(session["startTime"])
             )
 
-            # Remove candidate after successful upgrade
+            # Update system version based on the candidate
             if "candidate" in session:
                 candidate_id = session["candidate"]
                 if candidate_id in candidate_software_versions:
+                    candidate = candidate_software_versions[candidate_id]
+
+                    # Extract version and revision from candidate
+                    version = candidate.get("version", "")
+                    revision = candidate.get("revision", 0)
+
+                    # Update the software version in the database
+                    from ..models.storage import update_software_version
+
+                    update_software_version(version, revision, "upgrade")
+
+                    logger.info(
+                        f"Updated system version to {version} (revision {revision}) after successful upgrade"
+                    )
+
+                    # Remove candidate after successful upgrade
                     del candidate_software_versions[candidate_id]
                     logger.info(
                         f"Removed candidate {candidate_id} after successful upgrade"

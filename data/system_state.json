@@ -1,0 +1,86 @@
+{
+  "system": {
+    "id": "0",
+    "model": "Unity 380F",
+    "name": "CKM01204905476",
+    "softwareVersion": "5.3.0",
+    "softwareFullVersion": "Unity 5.3.0.0 (Release, Build 120, 2023-03-18 19:02:01, 5.3.0.0.5.120)",
+    "apiVersion": "13.0",
+    "earliestApiVersion": "4.0",
+    "languages": [
+      {
+        "name": "English",
+        "version": "5.3.0"
+      },
+      {
+        "name": "Chinese",
+        "version": "5.3.0"
+      }
+    ],
+    "hotFixes": [
+      "HF1",
+      "HF2"
+    ],
+    "packageVersions": [
+      {
+        "name": "Base",
+        "version": "5.3.0"
+      },
+      {
+        "name": "Management",
+        "version": "5.3.0"
+      }
+    ]
+  },
+  "users": {
+    "admin": {
+      "id": "user_admin",
+      "password": "Password123!",
+      "roles": [
+        {
+          "id": "administrator"
+        }
+      ],
+      "domain": "local"
+    },
+    "user": {
+      "id": "user_user",
+      "password": "Password123!",
+      "roles": [
+        {
+          "id": "user"
+        }
+      ],
+      "domain": "local"
+    },
+    "diagnose": {
+      "id": "user_diagnose",
+      "password": "Password123!",
+      "roles": [
+        {
+          "id": "diagnose"
+        }
+      ],
+      "domain": "local"
+    }
+  },
+  "candidate_software_versions": {},
+  "version_history": [
+    {
+      "version": "5.3.0",
+      "revision": 120,
+      "timestamp": "2025-03-24T07:22:41.561154",
+      "operation": "initial"
+    },
+    {
+      "version": "5.2.0",
+      "revision": 100,
+      "timestamp": "2025-03-24T07:22:41.561154",
+      "operation": "upgrade"
+    }
+  ],
+  "sessions": {},
+  "upgrade_sessions": {},
+  "uploaded_files": {},
+  "installed_software_versions": {}
+}

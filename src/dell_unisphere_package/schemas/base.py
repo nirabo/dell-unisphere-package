@@ -5,7 +5,7 @@ This module defines the Pydantic models used for data validation and serializati
 
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
 
@@ -130,3 +130,16 @@ class InstalledSoftwareVersion(BaseModel):
             isNewVersion=False,
         )
     ]
+
+
+class UpgradeSession(BaseModel):
+    """Schema for upgrade session information."""
+
+    id: str
+    status: UpgradeStatusEnum
+    candidate: str
+    current_version: str
+    tasks: List[Dict[str, Any]] = []
+    start_time: datetime = None
+    end_time: datetime = None
+    progress: int = 0

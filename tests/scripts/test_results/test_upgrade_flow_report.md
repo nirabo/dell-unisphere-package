@@ -1,5 +1,5 @@
 # Dell Unisphere Mock API - Comprehensive Test Report
-Generated on: Sat Mar 15 02:06:42 PM EET 2025
+Generated on: Mon Mar 24 08:08:23 AM EET 2025
 
 
 ## Checking if API is running
@@ -17,7 +17,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/basicSystemInfo/instances"
 ```json
 {
     "@base": "http://localhost:8000/api/types/basicSystemInfo/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.076Z",
+    "updated": "2025-03-24T08:08:23.301Z",
     "links": [
         {
             "rel": "self",
@@ -42,7 +42,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/basicSystemInfo/instances"
                     "href": "/0"
                 }
             ],
-            "updated": "2025-03-15T14:06:42.076Z"
+            "updated": "2025-03-24T08:08:23.301Z"
         }
     ]
 }
@@ -53,7 +53,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/basicSystemInfo/instances"
 ```bash
 curl -s -k -L -X GET "http://localhost:8000/api/types/loginSessionInfo/instances" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true"
 ```
-Got CSRF token: 549510d6-8091-42b3-913a-6d064048fdb3
+Got CSRF token: a694e19e-4e7d-438d-bc3d-4e0c794c5704
 ### Response
 ```json
 {
@@ -69,16 +69,16 @@ Got CSRF token: 549510d6-8091-42b3-913a-6d064048fdb3
         "user": {
             "id": "user_admin"
         },
-        "id": "549510d6-8091-42b3-913a-6d064048fdb3",
+        "id": "a694e19e-4e7d-438d-bc3d-4e0c794c5704",
         "isPasswordChangeRequired": false
     },
     "links": [
         {
             "rel": "self",
-            "href": "/549510d6-8091-42b3-913a-6d064048fdb3"
+            "href": "/a694e19e-4e7d-438d-bc3d-4e0c794c5704"
         }
     ],
-    "updated": "2025-03-15T14:06:42.139Z"
+    "updated": "2025-03-24T08:08:23.361Z"
 }
 ```
 
@@ -103,7 +103,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/user/instances" -u "admin:
 ```json
 {
     "@base": "http://localhost:8000/api/types/user/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.335Z",
+    "updated": "2025-03-24T08:08:23.527Z",
     "links": [
         {
             "rel": "self",
@@ -122,7 +122,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/user/instances" -u "admin:
                     "href": "/0"
                 }
             ],
-            "updated": "2025-03-15T14:06:42.335Z"
+            "updated": "2025-03-24T08:08:23.527Z"
         },
         {
             "@base": "http://localhost:8000/api/instances/user",
@@ -135,7 +135,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/user/instances" -u "admin:
                     "href": "/1"
                 }
             ],
-            "updated": "2025-03-15T14:06:42.335Z"
+            "updated": "2025-03-24T08:08:23.527Z"
         },
         {
             "@base": "http://localhost:8000/api/instances/user",
@@ -148,7 +148,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/user/instances" -u "admin:
                     "href": "/2"
                 }
             ],
-            "updated": "2025-03-15T14:06:42.335Z"
+            "updated": "2025-03-24T08:08:23.527Z"
         }
     ]
 }
@@ -163,66 +163,14 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/installedSoftwareVersion/i
 ```json
 {
     "@base": "http://localhost:8000/api/types/installedSoftwareVersion/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.413Z",
+    "updated": "2025-03-24T08:08:23.603Z",
     "links": [
         {
             "rel": "self",
             "href": "&page=1"
         }
     ],
-    "entries": [
-        {
-            "@base": "http://localhost:8000/api/instances/installedSoftwareVersion",
-            "content": {
-                "id": "0",
-                "version": "5.3.0",
-                "revision": 120,
-                "releaseDate": "2025-03-15T14:06:27.934947",
-                "fullVersion": "Unity 5.3.0.0 (Release, Build 120, 2023-03-18 19:02:01, 5.3.0.0.5.120)",
-                "languages": [
-                    {
-                        "name": "English",
-                        "version": "5.3.0"
-                    },
-                    {
-                        "name": "Chinese",
-                        "version": "5.3.0"
-                    }
-                ],
-                "hotFixes": [
-                    "HF1",
-                    "HF2"
-                ],
-                "packageVersions": [
-                    {
-                        "name": "Base",
-                        "version": "5.3.0"
-                    },
-                    {
-                        "name": "Management",
-                        "version": "5.3.0"
-                    }
-                ],
-                "driveFirmware": [
-                    {
-                        "name": "Drive Firmware Package 1",
-                        "version": "1.2.3",
-                        "releaseDate": "2025-03-15T14:06:27.934960",
-                        "upgradedeDriveCount": 24,
-                        "estimatedTime": 30,
-                        "isNewVersion": false
-                    }
-                ]
-            },
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/0"
-                }
-            ],
-            "updated": "2025-03-15T14:06:42.413Z"
-        }
-    ]
+    "entries": []
 }
 ```
 
@@ -234,55 +182,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/instances/installedSoftwareVersi
 ### Response
 ```json
 {
-    "@base": "http://localhost:8000/api/instances/installedSoftwareVersion",
-    "content": {
-        "id": "0",
-        "version": "5.3.0",
-        "revision": 120,
-        "releaseDate": "2025-03-15T14:06:27.934947",
-        "fullVersion": "Unity 5.3.0.0 (Release, Build 120, 2023-03-18 19:02:01, 5.3.0.0.5.120)",
-        "languages": [
-            {
-                "name": "English",
-                "version": "5.3.0"
-            },
-            {
-                "name": "Chinese",
-                "version": "5.3.0"
-            }
-        ],
-        "hotFixes": [
-            "HF1",
-            "HF2"
-        ],
-        "packageVersions": [
-            {
-                "name": "Base",
-                "version": "5.3.0"
-            },
-            {
-                "name": "Management",
-                "version": "5.3.0"
-            }
-        ],
-        "driveFirmware": [
-            {
-                "name": "Drive Firmware Package 1",
-                "version": "1.2.3",
-                "releaseDate": "2025-03-15T14:06:27.934960",
-                "upgradedeDriveCount": 24,
-                "estimatedTime": 30,
-                "isNewVersion": false
-            }
-        ]
-    },
-    "links": [
-        {
-            "rel": "self",
-            "href": "/0"
-        }
-    ],
-    "updated": "2025-03-15T14:06:42.479Z"
+    "detail": "Installed software version not found"
 }
 ```
 
@@ -295,7 +195,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/candidateSoftwareVersion/i
 ```json
 {
     "@base": "http://localhost:8000/api/types/candidateSoftwareVersion/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.530Z",
+    "updated": "2025-03-24T08:08:23.733Z",
     "links": [
         {
             "rel": "self",
@@ -315,7 +215,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances" 
 ```json
 {
     "@base": "http://localhost:8000/api/types/upgradeSession/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.597Z",
+    "updated": "2025-03-24T08:08:23.795Z",
     "links": [
         {
             "rel": "self",
@@ -335,7 +235,7 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances?f
 ```json
 {
     "@base": "http://localhost:8000/api/types/upgradeSession/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:42.672Z",
+    "updated": "2025-03-24T08:08:23.873Z",
     "links": [
         {
             "rel": "self",
@@ -349,21 +249,27 @@ curl -s -k -L -X GET "http://localhost:8000/api/types/upgradeSession/instances?f
 ## Verifying Upgrade Eligibility
 ### Request
 ```bash
-curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/action/verifyUpgradeEligibility" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: 00b5dfa7-8cc6-49e5-bb46-5c9f475fd0c5"
+curl -s -k -L -X POST "http://localhost:8000/api/types/upgradeSession/action/verifyUpgradeEligibility" -u "admin:Password123!" -c cookie.jar -H "X-EMC-REST-CLIENT: true" -H "EMC-CSRF-TOKEN: 0c2e8e3a-e5d1-4ec9-a1f4-0da94407b77a"
 ```
 ### Response
 ```json
 {
-    "eligible": true,
-    "messages": [],
-    "requiredPatches": [],
-    "requiredHotfixes": []
+    "detail": [
+        {
+            "type": "missing",
+            "loc": [
+                "body"
+            ],
+            "msg": "Field required",
+            "input": null
+        }
+    ]
 }
 ```
 
 ## Testing Complete Upgrade Flow
 This test will create an upgrade session and monitor it until completion
-Got CSRF token: d7b466aa-bea6-47e6-8464-107adf22d77d
+Got CSRF token: ad4e666c-8c89-4460-83cf-bb54b1de9770
 ### Step 1: Creating dummy upgrade file
 
 ## Creating dummy upgrade file
@@ -371,7 +277,7 @@ Creating a 10MB dummy file for testing software upload
 ```
 10+0 records in
 10+0 records out
-10485760 bytes (10 MB, 10 MiB) copied, 0.0443167 s, 237 MB/s
+10485760 bytes (10 MB, 10 MiB) copied, 0.040995 s, 256 MB/s
 File created: ./tests/scripts/test_results/test_upgrade.bin (10MB)
 ```
 ### Step 2: Uploading software package
@@ -381,18 +287,18 @@ curl -s -k -L -X POST "http://localhost:8000/upload/files/types/candidateSoftwar
         -u "admin:Password123!" \
         -b cookie.jar \
         -H "X-EMC-REST-CLIENT: true" \
-        -H "EMC-CSRF-TOKEN: d7b466aa-bea6-47e6-8464-107adf22d77d" \
+        -H "EMC-CSRF-TOKEN: ad4e666c-8c89-4460-83cf-bb54b1de9770" \
         -F "file=@./tests/scripts/test_results/test_upgrade.bin"
 ```
 Response:
 ```json
 {
-    "id": "file_c04e72c9-bf87-4b08-a08c-890de1317d74",
+    "id": "file_55284666-0118-4a54-bc4e-76903dcea37f",
     "filename": "test_upgrade.bin",
     "size": 10485760
 }
 ```
-Uploaded software package: file_c04e72c9-bf87-4b08-a08c-890de1317d74
+Uploaded software package: file_55284666-0118-4a54-bc4e-76903dcea37f
 ### Step 3: Preparing software
 Request:
 ```bash
@@ -400,27 +306,15 @@ curl -s -k -L -X POST "http://localhost:8000/api/types/candidateSoftwareVersion/
         -u "admin:Password123!" \
         -b cookie.jar \
         -H "X-EMC-REST-CLIENT: true" \
-        -H "EMC-CSRF-TOKEN: d7b466aa-bea6-47e6-8464-107adf22d77d" \
+        -H "EMC-CSRF-TOKEN: ad4e666c-8c89-4460-83cf-bb54b1de9770" \
         -H "Content-Type: application/json" \
-        -d '{"filename":"file_c04e72c9-bf87-4b08-a08c-890de1317d74"}'
-```
-Response:
-```json
-{
-    "id": "candidate_f285cc52-5a69-4fa5-b058-83dc2b3fd3b2",
-    "status": "SUCCESS"
-}
-```
-### Step 4: Getting candidate software versions
-Request:
-```bash
-curl -s -k -L -X GET "http://localhost:8000/api/types/candidateSoftwareVersion/instances"         -u "admin:Password123!"         -b cookie.jar         -H "X-EMC-REST-CLIENT: true"         -H "EMC-CSRF-TOKEN: d7b466aa-bea6-47e6-8464-107adf22d77d"
+        -d '{"filename":"file_55284666-0118-4a54-bc4e-76903dcea37f"}'
 ```
 Response:
 ```json
 {
     "@base": "http://localhost:8000/api/types/candidateSoftwareVersion/instances?per_page=2000",
-    "updated": "2025-03-15T14:06:43.118Z",
+    "updated": "2025-03-24T08:08:24.336Z",
     "links": [
         {
             "rel": "self",
@@ -431,346 +325,60 @@ Response:
         {
             "@base": "http://localhost:8000/api/instances/candidateSoftwareVersion",
             "content": {
-                "id": "file_c04e72c9-bf87-4b08-a08c-890de1317d74",
-                "version": "5.4.0.0",
-                "fullVersion": "Unity test_upgrade.bin",
-                "revision": 0,
-                "releaseDate": "2025-03-15T14:06:42.948452",
-                "type": "SOFTWARE",
-                "rebootRequired": true,
-                "canPauseBeforeReboot": true
+                "status": "PREPARED",
+                "filename": "file_55284666-0118-4a54-bc4e-76903dcea37f"
             },
             "links": [
                 {
                     "rel": "self",
-                    "href": "/file_c04e72c9-bf87-4b08-a08c-890de1317d74"
+                    "href": "/0"
                 }
             ],
-            "updated": "2025-03-15T14:06:43.118Z"
-        },
-        {
-            "@base": "http://localhost:8000/api/instances/candidateSoftwareVersion",
-            "content": {
-                "id": "candidate_f285cc52-5a69-4fa5-b058-83dc2b3fd3b2",
-                "version": "5.4.0",
-                "fullVersion": "Unity 5.4.0.0 (Release, Build 150, 2023-06-18 19:02:01, 5.4.0.0.5.150)",
-                "revision": 150,
-                "releaseDate": "2025-03-15T14:06:43.070722",
-                "type": "SOFTWARE",
-                "rebootRequired": true,
-                "canPauseBeforeReboot": true
-            },
-            "links": [
-                {
-                    "rel": "self",
-                    "href": "/candidate_f285cc52-5a69-4fa5-b058-83dc2b3fd3b2"
-                }
-            ],
-            "updated": "2025-03-15T14:06:43.118Z"
+            "updated": "2025-03-24T08:08:24.336Z"
         }
     ]
 }
 ```
-Found candidate ID: file_c04e72c9-bf87-4b08-a08c-890de1317d74
-### Step 2: Creating upgrade session
-### Step 3: Monitoring upgrade progress
-Monitoring the upgrade session until completion
-
-| Time | Status | Progress | Task States |
-|------|--------|----------|------------|
-| 14:06:43 | IN_PROGRESS | 0% | Preparing system: IN_PROGRESS,Performing health checks: PENDING,Preparing system software: PENDING,Waiting for reboot command: PENDING,Performing health checks: PENDING,Installing new software on peer SP: PENDING,Rebooting peer SP: PENDING,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:06:43
-| Task | Status |
-|------|--------|
-| Preparing system | IN_PROGRESS |
-| Performing health checks | PENDING |
-| Preparing system software | PENDING |
-| Waiting for reboot command | PENDING |
-| Performing health checks | PENDING |
-| Installing new software on peer SP | PENDING |
-| Rebooting peer SP | PENDING |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:06:45 | IN_PROGRESS | 12% | Preparing system: COMPLETED,Performing health checks: IN_PROGRESS,Preparing system software: PENDING,Waiting for reboot command: PENDING,Performing health checks: PENDING,Installing new software on peer SP: PENDING,Rebooting peer SP: PENDING,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:06:45
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | IN_PROGRESS |
-| Preparing system software | PENDING |
-| Waiting for reboot command | PENDING |
-| Performing health checks | PENDING |
-| Installing new software on peer SP | PENDING |
-| Rebooting peer SP | PENDING |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:06:48 | IN_PROGRESS | 18% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: IN_PROGRESS,Waiting for reboot command: PENDING,Performing health checks: PENDING,Installing new software on peer SP: PENDING,Rebooting peer SP: PENDING,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:06:48
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | IN_PROGRESS |
-| Waiting for reboot command | PENDING |
-| Performing health checks | PENDING |
-| Installing new software on peer SP | PENDING |
-| Rebooting peer SP | PENDING |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:06:54 | IN_PROGRESS | 39% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: IN_PROGRESS,Installing new software on peer SP: PENDING,Rebooting peer SP: PENDING,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:06:54
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | IN_PROGRESS |
-| Installing new software on peer SP | PENDING |
-| Rebooting peer SP | PENDING |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:06:57 | IN_PROGRESS | 43% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: IN_PROGRESS,Rebooting peer SP: PENDING,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:06:57
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | IN_PROGRESS |
-| Rebooting peer SP | PENDING |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:07:03 | IN_PROGRESS | 50% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: IN_PROGRESS,Restarting services on peer SP: PENDING,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:07:03
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | IN_PROGRESS |
-| Restarting services on peer SP | PENDING |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:07:10 | IN_PROGRESS | 58% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: COMPLETED,Restarting services on peer SP: IN_PROGRESS,Installing new software on primary SP: PENDING,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:07:10
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | COMPLETED |
-| Restarting services on peer SP | IN_PROGRESS |
-| Installing new software on primary SP | PENDING |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:07:15 | IN_PROGRESS | 69% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: COMPLETED,Restarting services on peer SP: COMPLETED,Installing new software on primary SP: IN_PROGRESS,Rebooting the primary SP: PENDING,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:07:15
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | COMPLETED |
-| Restarting services on peer SP | COMPLETED |
-| Installing new software on primary SP | IN_PROGRESS |
-| Rebooting the primary SP | PENDING |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:07:22 | IN_PROGRESS | 77% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: COMPLETED,Restarting services on peer SP: COMPLETED,Installing new software on primary SP: COMPLETED,Rebooting the primary SP: IN_PROGRESS,Restarting services on primary SP: PENDING,Final tasks: PENDING |
-
-#### Task State Changes at 14:07:22
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | COMPLETED |
-| Restarting services on peer SP | COMPLETED |
-| Installing new software on primary SP | COMPLETED |
-| Rebooting the primary SP | IN_PROGRESS |
-| Restarting services on primary SP | PENDING |
-| Final tasks | PENDING |
-| 14:07:28 | IN_PROGRESS | 89% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: COMPLETED,Restarting services on peer SP: COMPLETED,Installing new software on primary SP: COMPLETED,Rebooting the primary SP: COMPLETED,Restarting services on primary SP: IN_PROGRESS,Final tasks: PENDING |
-
-#### Task State Changes at 14:07:28
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | COMPLETED |
-| Restarting services on peer SP | COMPLETED |
-| Installing new software on primary SP | COMPLETED |
-| Rebooting the primary SP | COMPLETED |
-| Restarting services on primary SP | IN_PROGRESS |
-| Final tasks | PENDING |
-| 14:07:31 | COMPLETED | 100% | Preparing system: COMPLETED,Performing health checks: COMPLETED,Preparing system software: COMPLETED,Waiting for reboot command: COMPLETED,Performing health checks: COMPLETED,Installing new software on peer SP: COMPLETED,Rebooting peer SP: COMPLETED,Restarting services on peer SP: COMPLETED,Installing new software on primary SP: COMPLETED,Rebooting the primary SP: COMPLETED,Restarting services on primary SP: COMPLETED,Final tasks: COMPLETED |
-
-#### Task State Changes at 14:07:31
-| Task | Status |
-|------|--------|
-| Preparing system | COMPLETED |
-| Performing health checks | COMPLETED |
-| Preparing system software | COMPLETED |
-| Waiting for reboot command | COMPLETED |
-| Performing health checks | COMPLETED |
-| Installing new software on peer SP | COMPLETED |
-| Rebooting peer SP | COMPLETED |
-| Restarting services on peer SP | COMPLETED |
-| Installing new software on primary SP | COMPLETED |
-| Rebooting the primary SP | COMPLETED |
-| Restarting services on primary SP | COMPLETED |
-| Final tasks | COMPLETED |
-**Success:** Upgrade completed successfully!
-### Step 4: Getting final session details
-Final Status Response:
+### Step 4: Getting candidate software versions
+Request:
+```bash
+curl -s -k -L -X GET "http://localhost:8000/api/types/candidateSoftwareVersion/instances"         -u "admin:Password123!"         -b cookie.jar         -H "X-EMC-REST-CLIENT: true"         -H "EMC-CSRF-TOKEN: ad4e666c-8c89-4460-83cf-bb54b1de9770"
+```
+Response:
 ```json
 {
-    "@base": "http://localhost:8000/api/instances/upgradeSession",
-    "content": {
-        "id": "Upgrade_5.4.0.0",
-        "status": 2,
-        "percentComplete": 100,
-        "tasks": [
-            {
-                "status": 2,
-                "type": 0,
-                "caption": "Preparing system",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:03:30.000"
-            },
-            {
-                "status": 2,
-                "type": 0,
-                "caption": "Performing health checks",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:02:10.000"
-            },
-            {
-                "status": 2,
-                "type": 0,
-                "caption": "Preparing system software",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:16:10.000"
-            },
-            {
-                "status": 2,
-                "type": 0,
-                "caption": "Waiting for reboot command",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:00:05.000"
-            },
-            {
-                "status": 2,
-                "type": 0,
-                "caption": "Performing health checks",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:01:05.000"
-            },
-            {
-                "status": 2,
-                "type": 2,
-                "caption": "Installing new software on peer SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:16:50.000"
-            },
-            {
-                "status": 2,
-                "type": 3,
-                "caption": "Rebooting peer SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:14:15.000"
-            },
-            {
-                "status": 2,
-                "type": 2,
-                "caption": "Restarting services on peer SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:05:00.000"
-            },
-            {
-                "status": 2,
-                "type": 2,
-                "caption": "Installing new software on primary SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:13:30.000"
-            },
-            {
-                "status": 2,
-                "type": 3,
-                "caption": "Rebooting the primary SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:13:55.000"
-            },
-            {
-                "status": 2,
-                "type": 2,
-                "caption": "Restarting services on primary SP",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:05:10.000"
-            },
-            {
-                "status": 2,
-                "type": 2,
-                "caption": "Final tasks",
-                "creationTime": "2025-03-15T14:06:43.239288",
-                "estRemainTime": "00:00:45.000"
-            }
-        ]
-    },
+    "@base": "http://localhost:8000/api/types/candidateSoftwareVersion/instances?per_page=2000",
+    "updated": "2025-03-24T08:08:24.396Z",
     "links": [
         {
             "rel": "self",
-            "href": "/Upgrade_5.4.0.0"
+            "href": "&page=1"
         }
     ],
-    "updated": "2025-03-15T14:07:31.076Z"
+    "entries": [
+        {
+            "@base": "http://localhost:8000/api/instances/candidateSoftwareVersion",
+            "content": {
+                "id": "file_55284666-0118-4a54-bc4e-76903dcea37f",
+                "version": "5.4.0.0",
+                "fullVersion": "Unity test_upgrade.bin",
+                "revision": 0,
+                "releaseDate": "2025-03-24T08:08:24.190066",
+                "type": "SOFTWARE",
+                "rebootRequired": true,
+                "canPauseBeforeReboot": true
+            },
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "/file_55284666-0118-4a54-bc4e-76903dcea37f"
+                }
+            ],
+            "updated": "2025-03-24T08:08:24.396Z"
+        }
+    ]
 }
 ```
-### Task Completion Summary
-| Task Name | Status | Duration |
-|-----------|--------|----------|
+Found candidate ID: file_55284666-0118-4a54-bc4e-76903dcea37f
+### Step 2: Creating upgrade session
+**Error:** Failed to extract session ID
