@@ -102,6 +102,7 @@ Comprehensive documentation is available in the `docs` directory:
 - [Test Strategy](docs/TestStrategy.md) - Comprehensive testing approach including unit, integration, and e2e tests organized according to the test pyramid approach.
 - [Use Cases](docs/UseCases.md) - Common use case scenarios and workflows for interacting with the Dell Unisphere API.
 - [Project Backlog](docs/Backlog.md) - Current development status, completed features, and planned enhancements.
+- [Presentation](docs/presentation.md) - Comprehensive Marp presentation detailing the problem, solution, and results of the Dell Unisphere Mock API implementation, with a focus on the software upgrade process.
 
 ### Additional Resources
 The API also provides interactive documentation through Swagger UI, available at http://localhost:8000/docs when the server is running.
