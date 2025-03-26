@@ -746,7 +746,7 @@ Prepare the automated downloaded software image. Create a candidate version give
 | Header | Accept: application/json |
 | --- | --- |
 |  | Content - Type: application/json |
-| Method and URI | POST api/types/candidateSoftwareVersion/action/prepare |
+| Method and URI | POST /api/types/candidateSoftwareVersion/action/prepare |
 | Request body arguments | See the arquments table below. |
 | Successful return status | 200 OK, 202 Accepted (async response) |
 | Successful response body | JSON representation of the returned attributes. |
@@ -758,7 +758,7 @@ Prepare the automated downloaded software image. Create a candidate version give
 |  | out |  |  |  |
 | filename | in | String | Required | Filename of the automated downloaded software image |
 |  |  |  |  | to change into candidate version. |
-| id | out | candidateSoftwareVersion | N/A |  |
+| id | out | cd .. | N/A |  |
 
 ## UpgradeSessionTypeEnum
 

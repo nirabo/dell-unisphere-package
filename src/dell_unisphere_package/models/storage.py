@@ -33,6 +33,15 @@ candidate_software_versions: Dict[str, Any] = {}
 upgrade_sessions: Dict[str, Any] = {}
 uploaded_files: Dict[str, Any] = {}
 
+# System configuration for controlling mock behavior
+system_config: Dict[str, Any] = {
+    "eligibility_status": "success",  # Can be 'success', 'failure', or 'auto'
+    "failure_codes": [
+        "flr::check_server_connectivity_2"
+    ],  # List of failure codes to use
+    "auto_failure_threshold": 0.3,  # Probability of failure in 'auto' mode (0.0 to 1.0)
+}
+
 # Installed software versions
 installed_software_versions = {
     "0": {

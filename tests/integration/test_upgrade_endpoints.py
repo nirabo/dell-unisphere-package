@@ -261,6 +261,48 @@ class TestUpgradeEndpoints:
         # Verify the session is in progress
         assert session["status"] == UpgradeStatusEnum.IN_PROGRESS
 
+    def test_verify_upgrade_eligibility(self, app_client, auth_headers, csrf_token):
+        """Test the verify upgrade eligibility endpoint in both success and failure modes."""
+        headers = {**auth_headers, "EMC-CSRF-TOKEN": csrf_token}
+
+        # Test success case (default behavior)
+        response = app_client.post(
+            "/api/types/upgradeSession/action/verifyUpgradeEligibility",
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+        # Verify success response structure
+        data = response.json()
+        assert "updated" in data
+        assert "content" in data
+        assert "statusMessage" in data["content"]
+        assert "overallStatus" in data["content"]
+
+        # Empty statusMessage and overallStatus=False indicate success
+        assert data["content"]["statusMessage"] == ""
+        assert data["content"]["overallStatus"] is False
+
+        # Test failure case by passing the fail parameter
+        response = app_client.post(
+            "/api/types/upgradeSession/action/verifyUpgradeEligibility?fail=true",
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+        # Verify failure response structure
+        data = response.json()
+        assert "updated" in data
+        assert "content" in data
+        assert "codes" in data["content"]
+        assert "overallStatus" in data["content"]
+        assert "messages" in data["content"]
+
+        # overallStatus=True indicates failure in this context
+        assert data["content"]["overallStatus"] is True
+        assert "flr::check_server_connectivity_2" in data["content"]["codes"]
+        assert len(data["content"]["messages"]) > 0
+
     def test_upgrade_progress(self, app_client, auth_headers, csrf_token):
         """Test that upgrade progress increases over time."""
         # Create an upgrade session

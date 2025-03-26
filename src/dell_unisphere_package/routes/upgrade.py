@@ -37,6 +37,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+MSG = (
+    "The health check has failed. If an SP has to fail over, one or more of your "
+    "servers do not have redundant communication paths and could cause data "
+    "unavailable or data loss errors. Record the error code and search the Dell "
+    "Online Support website for available support options. [Error Code: {failure_code}]"
+)
+
 
 @router.get("/api/types/candidateSoftwareVersion/instances")
 def get_candidate_software_versions(
@@ -91,17 +98,75 @@ def get_upgrade_sessions(
 
 @router.post("/api/types/upgradeSession/action/verifyUpgradeEligibility")
 def verify_upgrade_eligibility(
-    request: Request, current_user=Depends(get_current_user)
+    request: Request, current_user=Depends(get_current_user), fail: bool = None
 ):
-    """Verify eligibility for software upgrade."""
-    # In a real implementation, this would check system state, disk space, etc.
-    # For this mock, we'll always return eligible
-    return {
-        "eligible": True,
-        "messages": [],
-        "requiredPatches": [],
-        "requiredHotfixes": [],
-    }
+    """Verify eligibility for software upgrade.
+
+    Args:
+        request: The request object
+        current_user: The authenticated user
+        fail: Override the system configuration (True for failure, False for success, None to use system config)
+
+    Returns:
+        Dict with eligibility status in the format observed on real machines
+    """
+    import random
+
+    from ..models.storage import system_config
+
+    # Current timestamp in ISO format
+    current_time = datetime.now().isoformat() + "Z"
+
+    # Determine if we should return a failure response
+    should_fail = False
+
+    if fail is not None:
+        # Explicit override via parameter
+        should_fail = fail
+    else:
+        # Use system configuration
+        status = system_config["eligibility_status"]
+        if status == "failure":
+            should_fail = True
+        elif status == "auto":
+            # Randomly determine success/failure based on threshold
+            should_fail = random.random() < system_config["auto_failure_threshold"]
+
+    if should_fail:
+        # Get failure codes from system config
+        failure_codes = system_config["failure_codes"]
+        failure_code = (
+            failure_codes[0] if failure_codes else "flr::check_server_connectivity_2"
+        )
+
+        # Failure response based on the example provided
+        return {
+            "updated": current_time,
+            "content": {
+                "codes": [failure_code],
+                "overallStatus": True,
+                "messages": [
+                    {
+                        "severity": 3,
+                        "httpStatus": 409,
+                        "errorCode": failure_code,
+                        "messages": [
+                            {
+                                "locale": "en_US",
+                                "message": MSG.format(failure_code=failure_code),
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+    else:
+        # Success response based on the example provided
+        # Empty statusMessage is indicative of success
+        return {
+            "updated": current_time,
+            "content": {"statusMessage": "", "overallStatus": False},
+        }
 
 
 @router.post("/api/types/candidateSoftwareVersion/action/prepare")
