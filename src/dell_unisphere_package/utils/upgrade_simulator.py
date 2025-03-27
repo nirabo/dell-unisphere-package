@@ -15,7 +15,8 @@ from ..schemas.base import TaskStatusEnum, TaskTypeEnum, UpgradeStatusEnum
 logger = logging.getLogger(__name__)
 
 # Configuration for time acceleration
-SIMULATION_SPEED_FACTOR = 120  # 120 faster than real-time for testing
+# For reboot task, we want it to last approximately 60 seconds
+SIMULATION_SPEED_FACTOR = 40  # Slowed down to better observe the reboot behavior
 
 # Store active simulation tasks
 active_simulations = {}

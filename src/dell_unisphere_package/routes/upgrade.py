@@ -227,7 +227,13 @@ async def create_upgrade_session(
     # Extract candidate ID from request body if provided
     try:
         body = await request.json()
-        candidate_id = body.get("candidate", None)
+        candidate_data = body.get("candidate", {})
+
+        # Handle both formats: {"candidate": {"id": "..."}} and {"candidate": "..."}
+        if isinstance(candidate_data, dict):
+            candidate_id = candidate_data.get("id", None)
+        else:
+            candidate_id = candidate_data
     except Exception:
         # Handle case where body is empty or invalid JSON
         body = {}

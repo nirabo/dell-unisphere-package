@@ -17,8 +17,13 @@ This package provides a FastAPI-based implementation of the Dell Unisphere API, 
   - Installed Software Versions
   - Upgrade Sessions
   - File Upload for Software Packages
+  - System Configuration for Mock Behavior Control
+- **Parametric Testing**: Control API behavior for testing both success and failure scenarios
+  - Configurable eligibility verification with success, failure, and auto modes
+  - Randomized failure simulation with adjustable probability
+  - Query parameter overrides for specific test cases
 - **Swagger UI**: Self-documenting API with authentication support
-- **Test Scripts**: Comprehensive test scripts to verify API functionality
+- **Test Scripts**: Comprehensive test scripts to verify API functionality, including shell scripts and pytest integration tests
 
 ## Installation
 
@@ -77,6 +82,27 @@ make test-report
 ```
 
 Our testing approach follows the [Test Pyramid](docs/TestStrategy.md) methodology with comprehensive unit, integration, and end-to-end tests.
+
+### Parametric Testing
+
+The mock API supports parametric testing of various scenarios through the system configuration endpoints. This is particularly useful for testing how client applications handle both success and failure responses.
+
+#### Eligibility Testing Scripts
+
+```bash
+# Run the eligibility testing shell script
+./tests/scripts/test_eligibility_modes.sh
+
+# Run the eligibility testing integration tests
+make test-integration PYTEST_ARGS="-v tests/integration/test_eligibility_modes.py"
+```
+
+The eligibility testing scripts demonstrate how to:
+
+1. Switch between success, failure, and auto modes
+2. Test with explicit parameter overrides
+3. Verify randomized behavior in auto mode
+4. Reset system configuration to default values
 
 ### Test Report and Coverage
 
@@ -162,6 +188,24 @@ POST /api/types/upgradeSession/instances
 POST /api/types/upgradeSession/action/verifyUpgradeEligibility
 POST /api/instances/upgradeSession/{id}/action/resume
 ```
+
+### System Configuration
+
+Controls the behavior of the mock API for testing purposes.
+
+```
+GET /api/types/systemConfig/instances
+POST /api/types/systemConfig/action/update
+```
+
+The system configuration endpoints allow you to control how the mock API behaves, particularly for testing different scenarios:
+
+- **Eligibility Status**: Control whether eligibility verification succeeds or fails
+  - `success`: Always returns success response
+  - `failure`: Always returns failure response with error codes
+  - `auto`: Randomly returns success or failure based on a configurable threshold
+- **Failure Codes**: Customize the error codes returned in failure responses
+- **Auto Failure Threshold**: Set the probability of failure in auto mode (0.0 to 1.0)
 
 ### File Upload
 

@@ -7,9 +7,14 @@ needed to test the Dell Unisphere API interactions.
 import logging
 import logging.config
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .middleware import (
+    CSRFProtectionMiddleware,
+    RebootSimulatorMiddleware,
+    RequiredHeadersMiddleware,
+)
 from .routes import router
 
 # Configure logging
@@ -160,77 +165,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add middleware in the correct order (from innermost to outermost):
+# 1. Required headers middleware (runs first)
+# 2. CSRF protection middleware (runs second)
+# 3. Reboot simulator middleware (runs last)
+
+# Add required headers middleware
+app.add_middleware(
+    RequiredHeadersMiddleware,
+    required_headers={"X-EMC-REST-CLIENT": "true"},
+    protected_paths=["/api", "/upload"],
+)
+
+# Add CSRF protection middleware
+app.add_middleware(
+    CSRFProtectionMiddleware,
+    excluded_paths=[
+        "/api/types/loginSessionInfo/instances",
+        "/upload/files/types/candidateSoftwareVersion",
+        "/api/auth",
+    ],
+)
+
+# Add reboot simulator middleware
+app.add_middleware(
+    RebootSimulatorMiddleware,
+    reboot_task_caption="Rebooting the primary SP",
+    reset_probability=1.0,  # Always reset during reboot task
+)
+
 # Include API routes
 app.include_router(router)
-
-
-# Middleware to verify CSRF token for POST and DELETE requests
-@app.middleware("http")
-async def verify_csrf_token(request: Request, call_next) -> Response:
-    """Verify CSRF token for POST and DELETE requests."""
-    if request.method in ["POST", "DELETE"] and (
-        request.url.path.startswith("/api") or request.url.path.startswith("/upload")
-    ):
-        # Skip CSRF check for login endpoint and file upload endpoint
-        if (
-            request.url.path == "/api/types/loginSessionInfo/instances"
-            or request.url.path == "/upload/files/types/candidateSoftwareVersion"
-            or request.url.path == "/api/auth"
-        ):
-            response = await call_next(request)
-            return response
-
-        # Check for CSRF token in headers
-        csrf_token = request.headers.get("EMC-CSRF-TOKEN")
-
-        # For test scripts, we need to handle the case where the token might be in the request body
-        # This is a workaround for the way the test script is passing the token
-        if not csrf_token:
-            # Check if we can read the body
-            body_bytes = await request.body()
-            body_text = body_bytes.decode()
-
-            # Try to extract the token from the body if it's passed as a header in the data parameter
-            if "EMC-CSRF-TOKEN" in body_text:
-                import re
-
-                token_match = re.search(r"EMC-CSRF-TOKEN:\s*([\w-]+)", body_text)
-                if token_match:
-                    # We found a token in the body, so we'll use it
-                    csrf_token = token_match.group(1)
-
-        # If we still don't have a token, return an error
-        if not csrf_token:
-            from fastapi.responses import JSONResponse
-
-            return JSONResponse(
-                status_code=403,
-                content={"error": "Missing CSRF token in header or body"},
-            )
-
-    response = await call_next(request)
-    return response
-
-
-# Middleware to check for required headers
-@app.middleware("http")
-async def verify_required_headers(request: Request, call_next) -> Response:
-    """Verify required headers for API requests."""
-    # Check for X-EMC-REST-CLIENT header for API paths
-    if request.url.path.startswith("/api") or request.url.path.startswith("/upload"):
-        if (
-            "X-EMC-REST-CLIENT" not in request.headers
-            or request.headers["X-EMC-REST-CLIENT"] != "true"
-        ):
-            from fastapi.responses import JSONResponse
-
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Missing or invalid X-EMC-REST-CLIENT header"},
-            )
-
-    response = await call_next(request)
-    return response
 
 
 # Run the application

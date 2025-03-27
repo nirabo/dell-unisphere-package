@@ -110,7 +110,7 @@ class TestUpgradeEndpoints:
 
         response = app_client.post(
             "/api/types/upgradeSession/instances",
-            json={"candidate": "candidate_test"},
+            json={"candidate": {"id": "candidate_test"}},
             headers=headers,
         )
         assert response.status_code == 200
@@ -145,7 +145,7 @@ class TestUpgradeEndpoints:
 
         create_response = app_client.post(
             "/api/types/upgradeSession/instances",
-            json={"candidate": "candidate_test"},
+            json={"candidate": {"id": "candidate_test"}},
             headers=headers,
         )
         assert create_response.status_code == 200
@@ -188,7 +188,7 @@ class TestUpgradeEndpoints:
 
         create_response = app_client.post(
             "/api/types/upgradeSession/instances",
-            json={"candidate": "candidate_test"},
+            json={"candidate": {"id": "candidate_test"}},
             headers=headers,
         )
         assert create_response.status_code == 200
@@ -313,7 +313,7 @@ class TestUpgradeEndpoints:
 
         create_response = app_client.post(
             "/api/types/upgradeSession/instances",
-            json={"candidate": "candidate_test"},
+            json={"candidate": {"id": "candidate_test"}},
             headers=headers,
         )
         assert create_response.status_code == 200
