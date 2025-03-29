@@ -80,6 +80,17 @@ class RebootSimulatorMiddleware(BaseHTTPMiddleware):
                 f"Simulating connection reset for {client_host} during system reboot"
             )
 
+            # Save the current state before simulating the connection reset
+            # This ensures we can recover the state when the server restarts
+            try:
+                from ..models.storage import candidate_software_versions
+                from ..utils.state_persistence import save_state
+
+                logger.info("Saving state before simulating reboot")
+                save_state(upgrade_sessions, candidate_software_versions)
+            except Exception as e:
+                logger.error(f"Failed to save state before reboot: {e}")
+
             # Return a response that will cause a connection reset
             # This is done by returning a response with an invalid status code
             # that will cause the server to close the connection
@@ -112,18 +123,29 @@ class RebootSimulatorMiddleware(BaseHTTPMiddleware):
 
             # Check each task in the session
             for task in session["tasks"]:
-                # Handle both dictionary and Pydantic model access
+                # Handle different task representations (dict, Pydantic model, or enum values)
                 if isinstance(task, dict):
                     task_caption = task.get("caption")
                     task_status = task.get("status")
+
+                    # Handle case where status is a dict with _value_ (serialized enum)
+                    if isinstance(task_status, dict) and "_value_" in task_status:
+                        task_status = task_status["_value_"]
+                    # Handle case where status is already an enum
+                    elif hasattr(task_status, "_value_"):
+                        task_status = task_status._value_
                 else:
                     # Access attributes directly for Pydantic models
                     task_caption = task.caption
                     task_status = task.status
 
-                if (
-                    task_caption == self.reboot_task_caption
-                    and task_status == TaskStatusEnum.IN_PROGRESS
+                    # Handle case where status is an enum
+                    if hasattr(task_status, "_value_"):
+                        task_status = task_status._value_
+
+                # Compare with enum value directly (1 = IN_PROGRESS)
+                if task_caption == self.reboot_task_caption and (
+                    task_status == TaskStatusEnum.IN_PROGRESS or task_status == 1
                 ):
                     logger.info(
                         f"Found active reboot task in session {session_id}: {task_caption}"

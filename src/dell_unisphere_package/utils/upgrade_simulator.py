@@ -270,6 +270,62 @@ async def process_upgrade_session(session_id: str):
     session = upgrade_sessions[session_id]
     print(f"DEBUG: Found session {session_id} with status {session.get('status')}")
 
+    # Check if this is a session being resumed after a server restart
+    is_resumed_session = False
+    current_task_index = None
+
+    # Find the current task that was in progress (if any)
+    session_status = session.get("status")
+    # Handle case where status is a dict with _value_ (serialized enum)
+    if isinstance(session_status, dict) and "_value_" in session_status:
+        session_status = session_status["_value_"]
+    # Handle case where status is an enum
+    elif hasattr(session_status, "_value_"):
+        session_status = session_status._value_
+
+    if (
+        session_status == UpgradeStatusEnum.IN_PROGRESS or session_status == 1
+    ):  # 1 = IN_PROGRESS
+        for i, task in enumerate(session.get("tasks", [])):
+            # Check if task is a dictionary or a Pydantic model
+            if isinstance(task, dict):
+                task_status = task.get("status")
+                # Handle case where status is a dict with _value_ (serialized enum)
+                if isinstance(task_status, dict) and "_value_" in task_status:
+                    task_status = task_status["_value_"]
+                # Handle case where status is an enum
+                elif hasattr(task_status, "_value_"):
+                    task_status = task_status._value_
+            else:
+                task_status = getattr(task, "status", None)
+                # Handle case where status is an enum
+                if hasattr(task_status, "_value_"):
+                    task_status = task_status._value_
+
+            if (
+                task_status == TaskStatusEnum.IN_PROGRESS or task_status == 1
+            ):  # 1 = IN_PROGRESS
+                is_resumed_session = True
+                current_task_index = i
+                logger.info(
+                    f"Detected resumed session {session_id} with task {i+1} in progress"
+                )
+
+                # Add a message about resuming the task
+                task_caption = (
+                    task.get("caption")
+                    if isinstance(task, dict)
+                    else getattr(task, "caption", "Unknown task")
+                )
+                session["messages"].append(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "message": f"Resuming task after server restart: {task_caption}",
+                        "severity": 0,
+                    }
+                )
+                break
+
     # Initialize list to track asyncio tasks
     tasks = []
 
@@ -315,6 +371,16 @@ async def process_upgrade_session(session_id: str):
     try:
         # Process each task
         for i, task in enumerate(session["tasks"]):
+            # If this is a resumed session and we're not at the current task yet, skip
+            if is_resumed_session and i < current_task_index:
+                # Count completed tasks
+                if isinstance(task, dict):
+                    if task.get("status") == TaskStatusEnum.COMPLETED:
+                        completed_tasks += 1
+                else:
+                    if getattr(task, "status", None) == TaskStatusEnum.COMPLETED:
+                        completed_tasks += 1
+                continue
             # Check if session still exists (might have been deleted or stopped)
             if session_id not in upgrade_sessions:
                 logger.info(

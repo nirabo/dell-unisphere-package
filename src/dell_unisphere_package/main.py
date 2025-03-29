@@ -4,8 +4,14 @@ This module provides a standalone FastAPI server that implements the basic endpo
 needed to test the Dell Unisphere API interactions.
 """
 
+import atexit
 import logging
 import logging.config
+
+# Register signal handlers to save state on SIGINT and SIGTERM
+import signal
+import sys
+import threading
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +46,9 @@ logging_config = {
         },
     },
 }
+
+# Flag to prevent multiple signal handlers from running simultaneously
+_shutdown_in_progress = threading.Event()
 
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger("dell_unisphere_package")
@@ -196,6 +205,166 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(router)
+
+
+# Load persisted state on startup
+@app.on_event("startup")
+async def startup_event():
+    """Load persisted state on startup and restart in-progress upgrade simulations."""
+    logger.info("Loading persisted state on startup")
+
+    # Load all state
+    import asyncio
+
+    from .models.storage import candidate_software_versions, upgrade_sessions
+    from .schemas.base import TaskStatusEnum, UpgradeStatusEnum
+    from .utils.state_persistence import load_state
+    from .utils.upgrade_simulator import start_upgrade_simulation
+
+    saved_sessions, saved_candidates = load_state()
+
+    # Update candidate software versions first (needed for upgrade sessions)
+    if saved_candidates:
+        candidate_software_versions.update(saved_candidates)
+        logger.info(
+            f"Loaded {len(saved_candidates)} candidate software versions from disk"
+        )
+
+    # Then update upgrade sessions
+    if saved_sessions:
+        # Update the in-memory upgrade_sessions with the loaded data
+        upgrade_sessions.update(saved_sessions)
+        logger.info(f"Loaded {len(saved_sessions)} upgrade sessions from disk")
+
+        # Restart upgrade simulations for in-progress sessions
+        in_progress_sessions = []
+
+        for session_id, session in saved_sessions.items():
+            session_status = session.get("status")
+
+            # Handle different representations of the status
+            if isinstance(session_status, dict) and "_value_" in session_status:
+                session_status = session_status["_value_"]
+            elif hasattr(session_status, "_value_"):
+                session_status = session_status._value_
+
+            # Check if session is in progress or has an in-progress task
+            if session_status == UpgradeStatusEnum.IN_PROGRESS or session_status == 1:
+                # Check if any task is in progress
+                has_in_progress_task = False
+                for task in session.get("tasks", []):
+                    task_status = (
+                        task.get("status")
+                        if isinstance(task, dict)
+                        else getattr(task, "status", None)
+                    )
+
+                    # Handle different representations of the status
+                    if isinstance(task_status, dict) and "_value_" in task_status:
+                        task_status = task_status["_value_"]
+                    elif hasattr(task_status, "_value_"):
+                        task_status = task_status._value_
+
+                    if task_status == TaskStatusEnum.IN_PROGRESS or task_status == 1:
+                        has_in_progress_task = True
+                        break
+
+                if has_in_progress_task:
+                    in_progress_sessions.append(session_id)
+
+        if in_progress_sessions:
+            logger.info(
+                f"Found {len(in_progress_sessions)} in-progress upgrade sessions to restart"
+            )
+
+            # Schedule the restart of upgrade simulations after a short delay
+            # to ensure the server is fully started
+            async def restart_simulations():
+                await asyncio.sleep(2)  # Wait for 2 seconds to ensure server is ready
+                for session_id in in_progress_sessions:
+                    logger.info(
+                        f"Restarting upgrade simulation for session {session_id}"
+                    )
+                    try:
+                        # Start the upgrade simulation in the background
+                        start_upgrade_simulation(session_id)
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to restart upgrade simulation for session {session_id}: {e}"
+                        )
+
+            # Schedule the restart task
+            asyncio.create_task(restart_simulations())
+
+
+# Save state on shutdown
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Save state on shutdown."""
+    logger.info("Saving state on shutdown")
+    from .models.storage import candidate_software_versions, upgrade_sessions
+    from .utils.state_persistence import save_state
+
+    save_state(upgrade_sessions, candidate_software_versions)
+
+
+def signal_handler(sig, frame):
+    """Handle signals to save state before exiting.
+
+    This function ensures that we don't try to save state multiple times
+    if multiple signals are received in quick succession.
+    """
+    # If shutdown is already in progress, just return
+    if _shutdown_in_progress.is_set():
+        logger.info(f"Shutdown already in progress, ignoring signal {sig}")
+        return
+
+    # Set the flag to indicate shutdown is in progress
+    _shutdown_in_progress.set()
+
+    logger.info(f"Received signal {sig}, saving state before exiting")
+    try:
+        from .models.storage import candidate_software_versions, upgrade_sessions
+        from .utils.state_persistence import save_state
+
+        SESSION_MESSAGE = (
+            f"Saving {len(upgrade_sessions)} upgrade sessions and ",
+            f"{len(candidate_software_versions)} candidate software versions",
+        )
+        # Log the number of sessions being saved
+        logger.info(SESSION_MESSAGE)
+
+        # Save the state
+        save_state(upgrade_sessions, candidate_software_versions)
+        logger.info("State saved successfully")
+    except Exception as e:
+        logger.error(f"Error saving state: {e}")
+    finally:
+        # Exit cleanly
+        sys.exit(0)
+
+
+# Register the signal handlers
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+
+# Register atexit handler as a fallback
+def save_state_on_exit():
+    # Only run if shutdown is not already in progress
+    if not _shutdown_in_progress.is_set():
+        logger.info("atexit handler triggered, saving state")
+        try:
+            from .models.storage import candidate_software_versions, upgrade_sessions
+            from .utils.state_persistence import save_state
+
+            save_state(upgrade_sessions, candidate_software_versions)
+            logger.info("State saved successfully by atexit handler")
+        except Exception as e:
+            logger.error(f"Error saving state in atexit handler: {e}")
+
+
+atexit.register(save_state_on_exit)
 
 
 # Run the application
